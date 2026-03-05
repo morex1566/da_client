@@ -1,7 +1,7 @@
 using System;
+using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using Common;
 
 namespace NetCore
 {
@@ -14,22 +14,22 @@ namespace NetCore
         // ring buffer가 비어도 context loop가 유지될 수 있도록
         public sealed class WorkGuard : IDisposable
         {
-            private readonly IOContext _ctx;
+            private readonly IOContext _context;
 
             private bool _disposed;
 
             internal WorkGuard(IOContext ctx)
             {
-                _ctx = ctx;
-                Interlocked.Increment(ref _ctx._workCount);
+                _context = ctx;
+                Interlocked.Increment(ref _context._workCount);
             }
 
             public void Dispose()
             {
                 if (_disposed) return;
                 _disposed = true;
-                Interlocked.Decrement(ref _ctx._workCount);
-                _ctx._signal.Set(); // Run() 루프에 변화 알림
+                Interlocked.Decrement(ref _context._workCount);
+                _context._signal.Set(); // Run() 루프에 변화 알림
             }
         }
 
@@ -37,7 +37,7 @@ namespace NetCore
         private const int QueueCapacity = 4096;
 
         // ─── 내부 상태 ──────────────────────────────────────────
-        private readonly TsRing<Action> _buffer = new TsRing<Action>(QueueCapacity);
+        private readonly ConcurrentQueue<Action> _queue = new ConcurrentQueue<Action>();
 
         private readonly ManualResetEventSlim _signal = new ManualResetEventSlim(false);
 
@@ -62,7 +62,7 @@ namespace NetCore
         public void Post(Action handler)
         {
             if (handler == null) return;
-            _buffer.Push(handler);
+            _queue.Enqueue(handler);
             _signal.Set();
         }
 
@@ -95,7 +95,7 @@ namespace NetCore
                 while (true)
                 {
                     // 큐 드레인
-                    while (_buffer.Pop(out var handler))
+                    while (_queue.TryDequeue(out var handler))
                     {
                         handler.Invoke();
                     }

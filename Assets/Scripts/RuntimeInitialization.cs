@@ -23,6 +23,6 @@ public class RuntimeInitialization
             ioContext.Run();
         }
 
-        // tcp = new TCP(ioContext);
+        tcp = new TCP(ioContext, NetConfig.host, NetConfig.tcpPort);
     }
 }

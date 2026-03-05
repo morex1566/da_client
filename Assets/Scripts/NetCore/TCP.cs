@@ -2,7 +2,6 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 namespace NetCore
@@ -13,14 +12,6 @@ namespace NetCore
     /// </summary>
     public class TCP
     {
-        private readonly IOContext _context;
-
-        private Socket _socket;
-
-        private IPEndPoint _endpoint;
-
-        public bool IsConnected => _socket != null && _socket.Connected;
-
         /// <summary>
         /// IOContext 주입 생성자
         /// </summary>
@@ -67,10 +58,16 @@ namespace NetCore
             _socket.Close();
         }
 
-        // ─── 내부 콜백 ───────────────────────────────────────────
-
+        /// <summary>
+        /// 해당 서버와 연결된 Connection 클래스 생성
+        /// </summary>
         private void OnConnectComplete()
         {
+            _connection = new Connection();
+            {
+                _connection.AsyncRead();
+            }
+
             Debug.Log("Connection Completed.");
         }
 
@@ -88,5 +85,19 @@ namespace NetCore
         {
 
         }
+
+
+
+        private IOContext _context;
+
+        private Socket _socket;
+
+        private IPEndPoint _endpoint;
+
+        private Connection _connection;
+
+        private UInt64 connectionId;
+
+        public bool IsConnected => _socket != null && _socket.Connected;
     }
 }
