@@ -76,13 +76,16 @@ You use korean all of conversation.
 
 ## About implement
 
-파일 수정하기전에 꼭 수동으로 수정할것인지 여부를 물어볼것
+파일 수정을 금지함. 구현 사항만 보여줄것.
 
 ## Code Convention
 
 1. 괄호는 항상 아래로 내려 쓰기. 단 매우 짧은 { return null; } 이런 경우는 옆으로 쓰기
 
-2. 맴버 변수 등 모든 변수는 스네일 케이스 소문자만 사용 ex. int value_type
+2. 컨벤션은 파스칼 케이스를 사용
+2-1. 맴버 변수의 경우 ex. int _data; 이렇게
+2-2. 지역 변수의 경우 ex. int data; 이렇게
+2-3. 함수의 경우 ex. int GetData(); 이렇게 작성함
 
 3. 클래스는 public 함수, public 변수 이렇게 나눠쓰는거임
 3-1. 클래스 구조는 생성자 소멸자, 가상함수, 일반 함수, 변수 순서로 작성

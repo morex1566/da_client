@@ -1,7 +1,10 @@
-using NetCore;
 using UnityEngine;
+using NetCore;
+#if UNITY_EDITOR
+using UnityEditor;
 
-public static class RuntimeInitialization
+[InitializeOnLoad]
+public static class EditorInitialization
 {
     private static IOContext ioContext;
 
@@ -9,12 +12,14 @@ public static class RuntimeInitialization
 
     public static TCP tcp;
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    private static void OnAfterSceneLoaded()
+    static EditorInitialization()
     {
         InitNetworkSystem();
+
+        EditorApplication.update += OnEditorUpdate;
     }
 
+    [MenuItem("Network/Init")]
     private static void InitNetworkSystem()
     {
         ioContext = IOContext.GetInstance();
@@ -29,4 +34,23 @@ public static class RuntimeInitialization
             tcp.AsyncConnect();
         }
     }
+
+    [MenuItem("Network/Connect")]
+    private static void Connect()
+    {
+        tcp.AsyncConnect();
+    }
+
+    [MenuItem("Network/Disconnect")]
+    private static void Disconnect()
+    {
+        tcp.Disconnect();
+    }
+
+    private static void OnEditorUpdate()
+    {
+
+    }
 }
+
+#endif

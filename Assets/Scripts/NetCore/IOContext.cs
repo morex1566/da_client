@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using NetCommon;
 
 namespace NetCore
 {
@@ -9,7 +10,7 @@ namespace NetCore
     /// asio::io_context 와 동일한 구조의 Proactor 이벤트 루프.
     /// Post() 로 완료 콜백을 큐에 적재하고, Run() 을 실행 중인 전용 스레드에서 drain.
     /// </summary>
-    public class IOContext
+    public class IOContext : Singleton<IOContext>
     {
         // ring buffer가 비어도 context loop가 유지될 수 있도록
         public sealed class WorkGuard : IDisposable
@@ -33,10 +34,6 @@ namespace NetCore
             }
         }
 
-        // ─── 상수 ───────────────────────────────────────────────
-        private const int QueueCapacity = 4096;
-
-        // ─── 내부 상태 ──────────────────────────────────────────
         private readonly ConcurrentQueue<Action> _queue = new ConcurrentQueue<Action>();
 
         private readonly ManualResetEventSlim _signal = new ManualResetEventSlim(false);
@@ -49,7 +46,6 @@ namespace NetCore
         // Dispatch용
         private int _workerThreadId;
 
-        // ─── 공개 API ───────────────────────────────────────────
 
         /// <summary>
         /// WorkGuard 생성. Dispose 전까지 Stop() 호출 이후에도 Run() 루프 유지

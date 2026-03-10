@@ -1,6 +1,8 @@
-using System;
+using NetPacket;
+using NetCommon;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -8,14 +10,22 @@ namespace NetCore
 {
     /// <summary>
     /// IOContext 기반 비동기 TCP 클라이언트.
-    /// Connect / Receive / Send 완료 콜백을 IOContext.Post() 로 전달.
+    /// Connect / Receive / AsyncSend 완료 콜백을 IOContext.Post() 로 전달.
     /// </summary>
-    public class TCP
+    public class TCP : Singleton<TCP>
     {
         /// <summary>
-        /// IOContext 주입 생성자
+        /// Default constructor for Singleton
         /// </summary>
-        public TCP(IOContext context, string host, int port)
+        public TCP()
+        {
+
+        }
+
+        /// <summary>
+        /// TCP Instance Initialization
+        /// </summary>
+        public void Init(IOContext context, string host, int port)
         {
             _context = context;
             _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -27,6 +37,8 @@ namespace NetCore
         /// </summary>
         public void AsyncConnect()
         {
+            Debug.Log("Start to AsyncConnect");
+
             _socket.ConnectAsync(_endpoint).ContinueWith((Task task) =>
             {
                 _context.Dispatch(() =>
@@ -46,7 +58,7 @@ namespace NetCore
         }
 
         /// <summary>
-        /// 소켓 닫기 및 리소스 해제
+        /// 소켓 닫기
         /// </summary>
         public void Disconnect()
         {
@@ -54,8 +66,28 @@ namespace NetCore
             {
                 return;
             }
-            
+           
             _socket.Close();
+        }
+
+        public void AsyncSend(PacketType type, Google.Protobuf.IMessage msg)
+        {
+            var packetMemoryOwner = PacketUtility.Serialize(type, msg);
+
+            // AsyncSend 한계 확인
+            if (!_connection.SendQueue.TryAdd(packetMemoryOwner))
+            {
+                Log.Trace("send queue is overflowed.");
+                return;
+            }
+
+            // 쓰기 실행
+            _connection.AsyncWrite();
+        }
+
+        public void AsyncReceive()
+        {
+
         }
 
         /// <summary>
@@ -63,10 +95,12 @@ namespace NetCore
         /// </summary>
         private void OnConnectComplete()
         {
-            _connection = new Connection();
-            {
-                _connection.AsyncRead();
-            }
+            // 연결 고유 id 받아옴
+            int currConnectionId = Volatile.Read(ref _connectionId);
+            Volatile.Write(ref _connectionId, _connectionId + 1);
+
+            // [수정] Connection 생성 시 세그먼트 풀 전달
+            _connection = new Connection(_context, _socket, currConnectionId);
 
             Debug.Log("Connection Completed.");
         }
@@ -75,17 +109,6 @@ namespace NetCore
         {
             Debug.Log("Connection Failed.");
         }
-
-        private void OnReceiveComplete()
-        {
-
-        }
-
-        private void OnSendComplete()
-        {
-
-        }
-
 
 
         private IOContext _context;
@@ -96,7 +119,7 @@ namespace NetCore
 
         private Connection _connection;
 
-        private UInt64 connectionId;
+        private int _connectionId;
 
         public bool IsConnected => _socket != null && _socket.Connected;
     }
