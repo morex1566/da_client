@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("NetMesssage")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d1933db0afdc68840b657665899a8115a152d635")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8b21e1acac9933efce4b3dd214c3a32e991e7d29")]
 [assembly: System.Reflection.AssemblyProductAttribute("NetMesssage")]
 [assembly: System.Reflection.AssemblyTitleAttribute("NetMesssage")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -5,7 +5,6 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
-using System.Collections.Concurrent;
 using Google.FlatBuffers;
 
 namespace NetCore
@@ -14,12 +13,12 @@ namespace NetCore
     /// IOContext 기반 비동기 TCP 클라이언트.
     /// Connect / Receive / Send 완료 콜백을 IOContext.Post() 로 전달.
     /// </summary>
-    public class TCP : Singleton<TCP>
+    public class UDP : Singleton<UDP>
     {
         /// <summary>
         /// Default constructor for Singleton
         /// </summary>
-        public TCP()
+        public UDP()
         {
 
         }

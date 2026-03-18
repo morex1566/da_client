@@ -93,8 +93,6 @@ public class NetSendMessageGenerator : IIncrementalGenerator
 
                 sb.AppendLine($"    public partial void {method.Name}({parameters})");
                 sb.AppendLine("    {");
-                sb.AppendLine($"        {method.Name}Impl({arguments});");
-                sb.AppendLine();
                 sb.AppendLine("        if (TCP.GetInstance().IsConnected)");
                 sb.AppendLine("        {");
                 sb.AppendLine($"            TCP.GetInstance().Send(NetPacket.PacketType.{packetTypeName}, {syncTargetName});");
