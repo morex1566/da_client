@@ -1,0 +1,41 @@
+using Common;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+public class SceneManager : MonoBehaviourSingleton<SceneManager>
+{
+    [SerializeField] private SceneManagerSetting setting;
+
+    public static SceneManagerSetting Setting => instance.setting;
+
+    public void OnEnable()
+    {
+        setting = Resources.Load<SceneManagerSetting>(AssetPath.SceneManagerSetting);
+    }
+
+    public void OnDisable()
+    {
+        Resources.UnloadAsset(setting);
+    }
+
+    public static void Init()
+    {
+        GetInstance();
+    }
+
+    public static int GetBuildIndex(string sceneName)
+    {
+        for (int i = 0; i < UnityEngine.SceneManagement.SceneManager.sceneCountInBuildSettings; i++)
+        {
+            string scenePath = SceneUtility.GetScenePathByBuildIndex(i);
+            string nameInPath = System.IO.Path.GetFileNameWithoutExtension(scenePath);
+
+            if (nameInPath == sceneName)
+            {
+                return i;
+            }
+        }
+
+        return -1; // 찾지 못한 경우
+    }
+}

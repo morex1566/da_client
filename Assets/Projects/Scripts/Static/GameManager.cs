@@ -1,6 +1,7 @@
 using NetCore;
 using UnityEngine;
 using Common;
+using DG.Tweening;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -11,10 +12,20 @@ using UnityEditor;
 #endif
 public class GameManager : MonoBehaviourSingleton<GameManager>
 {
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    private static void OnAfterSceneLoaded()
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void OnBeforeSceneLoaded()
     {
-        NetManager.Init();
+        Init();
+        DOTween.Init();
+        EventManager.Init();
         InputManager.Init();
+        SceneManager.Init();
+        UIManager.Init();
+        NetManager.Init();
+    }
+
+    public static void Init()
+    {
+        GetInstance();
     }
 }
