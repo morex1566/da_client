@@ -1,35 +1,58 @@
-using UnityEngine;
-using UnityEngine.Networking;
-using UnityEngine.EventSystems; // UIBehaviour를 위해 필요합니다.
+using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.EventSystems; // UIBehaviour를 위해 필요합니다.
+using UnityEngine.LightTransport;
+using UnityEngine.Networking;
 
 // UIBehaviour를 상속받고, IAuthService를 구현합니다.
-public class GoogleAuthServicer : UIBehaviour, IAuthService
+public class GoogleAuthServicer : UIBehaviour
 {
     // --- [설정 및 기존 로직은 동일] ---
-    private string _clientId = "1037531147924-tomb4bmakelqcuht2igfb9eomegacsso.apps.googleusercontent.com";
-    private string _clientSecret = "YOUR_CLIENT_SECRET_HERE";
-    private int _port = 5000;
+    private string clientId = "1037531147924-tomb4bmakelqcuht2igfb9eomegacsso.apps.googleusercontent.com";
+    private string clientSecret = "YOUR_CLIENT_SECRET_HERE";
+    private int authConsolePort = 5000;
 
-    private string RedirectUri => $"http://localhost:{_port}/";
+    private string redirectUri => $"http://localhost:{authConsolePort}/";
 
-    // Login, Logout, ExchangeCodeForToken 등의 메서드는 그대로 유지됩니다.
-    public async void Login(Action<AuthResult> callback)
+
+
+    public void AsyncLogin()
     {
-        // ... (기존과 동일)
-    }
+        HttpListener listener = new HttpListener();
+        {
+            listener.Prefixes.Add(redirectUri);
+            listener.Start();
+        }
 
-    public void Logout() { }
+        string encodedRedirectUri = UnityWebRequest.EscapeURL(redirectUri);
+        string authUrl = $"https://accounts.google.com/o/oauth2/v2/auth?" +
+                         $"client_id={clientId}&" +
+                         $"response_type=code&" +
+                         $"scope=openid%20email%20profile&" +
+                         $"redirect_uri={encodedRedirectUri}";
 
-    // UIBehaviour를 상속받았으므로 Awake, Start, OnEnable 등을 오버라이드할 수 있습니다.
-    protected override void Awake()
-    {
-        base.Awake();
-        Debug.Log("[Auth] WindowsGoogleAuthServer as UIBehaviour initialized.");
+        Application.OpenURL(authUrl);
+
+        listener.GetContextAsync().ContinueWith(task => 
+        {
+            var context = task.Result;
+            string code = context.Request.QueryString.Get("code");
+
+            // context(브라우저)에 전달할 내용 및 설정
+            byte[] contentBuffer = HTTP.GetCloseTabResponseBuffer();
+            context.Response.ContentLength64 = contentBuffer.Length;
+            context.Response.ContentType = HTTP.ContentType.HTML;
+            context.Response.OutputStream.Write(contentBuffer, 0, contentBuffer.Length);
+            context.Response.OutputStream.Close();
+
+            listener.Stop();
+
+            Debug.Log("<color=green>로그인 성공! 인증 코드: </color>" + code);
+        });
     }
 }
