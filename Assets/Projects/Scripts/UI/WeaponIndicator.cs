@@ -3,20 +3,36 @@ using UnityEngine;
 
 public class WeaponIndicator : MonoBehaviour
 {
-    [SerializeField] private RangeWeaponController weaponController;
+    [SerializeField] private WeaponPresenter presenter;
 
     [SerializeField] private TextMeshProUGUI ammoText;
 
 
 
+
+    private void OnValidate()
+    {
+        Init();
+    }
+
+    private void Awake()
+    {
+        Init();
+    }
+
+    private void Init()
+    {
+        presenter = Utls.FindComponentByTag<WeaponPresenter>(UnityConstant.Tags.Weapon);
+    }
+
     private void OnEnable()
     {
-        weaponController.OnAmmoChanged += UpdateAmmoText;
+        presenter.OnAmmoChanged += UpdateAmmoText;
     }
 
     private void OnDisable()
     {
-        weaponController.OnAmmoChanged -= UpdateAmmoText;
+        presenter.OnAmmoChanged -= UpdateAmmoText;
     }
 
     private void UpdateAmmoText(int currentAmmo, int maxAmmo)

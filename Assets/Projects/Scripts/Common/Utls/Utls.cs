@@ -37,4 +37,29 @@ public static class Utls
 
         return worldPos;
     }
+
+    public static T FindComponentByTag<T>(string tag) where T : Component
+    {
+        GameObject[] gameObjects = GameObject.FindGameObjectsWithTag(tag);
+
+        for (int i = 0; i < gameObjects.Length; i++)
+        {
+            T component = gameObjects[i].GetComponent<T>();
+
+            if (component != null)
+                return component;
+
+            component = gameObjects[i].GetComponentInChildren<T>();
+
+            if (component != null)
+                return component;
+
+            component = gameObjects[i].GetComponentInParent<T>();
+
+            if (component != null)
+                return component;
+        }
+
+        return null;
+    }
 }

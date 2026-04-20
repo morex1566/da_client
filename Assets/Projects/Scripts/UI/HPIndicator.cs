@@ -5,20 +5,38 @@ using UnityEngine.UI;
 
 public class HPIndicator : MonoBehaviour
 {
-    [SerializeField] private PlayerController playerController;
+    [SerializeField] private PlayerPresenter presenter;
+
     [SerializeField] private Slider hpBar;
+
     [SerializeField] private TextMeshProUGUI hpText;
 
 
 
+    private void OnValidate()
+    {
+        Init();
+    }
+
+    private void Awake()
+    {
+        Init();
+    }
+
+    private void Init()
+    {
+        presenter = Utls.FindComponentByTag<PlayerPresenter>(UnityConstant.Tags.Player);
+    }
+
+
     private void OnEnable()
     {
-        playerController.OnColliderTriggered += UpdateHpIndicator;
+        presenter.OnHpChanged += UpdateHpIndicator;
     }
 
     private void OnDisable()
     {
-        playerController.OnColliderTriggered -= UpdateHpIndicator;
+        presenter.OnHpChanged -= UpdateHpIndicator;
     }
 
     private void UpdateHpIndicator(float currentHp, float maxHp)

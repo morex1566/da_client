@@ -16,7 +16,6 @@ public class HurtBox : MonoBehaviour
 
     private void Awake()
     {
-        ownerCreature = GetComponentInParent<Creature>();
         owner = GetComponentInParent<IDamageable>();
         ownerBehaviour = owner as MonoBehaviour;
     }

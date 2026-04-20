@@ -9,6 +9,10 @@ TagManager:
   - ResolutionReference
   - CameraCanvas
   - OverlayCanvas
+  - PlayerUI
+  - WeaponUI
+  - WeaponController
+  - Weapon
   layers:
   - Default
   - TransparentFX
@@ -23,8 +27,8 @@ TagManager:
   - Player
   - Ally
   - Enemy
-  - 
-  - 
+  - Weapon
+  - PlayerController
   - 
   - 
   - 

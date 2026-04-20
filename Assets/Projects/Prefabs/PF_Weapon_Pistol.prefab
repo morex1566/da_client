@@ -10,10 +10,12 @@ GameObject:
   m_Component:
   - component: {fileID: 7649877518933444853}
   - component: {fileID: 6904725210380465965}
+  - component: {fileID: 3024857400356980333}
   - component: {fileID: 2075815918549511062}
-  m_Layer: 0
+  - component: {fileID: 66801073435903747}
+  m_Layer: 13
   m_Name: PF_Weapon_Pistol
-  m_TagString: Untagged
+  m_TagString: Weapon
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -47,8 +49,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RangeWeapon
   data: {fileID: 11400000, guid: 9c8237fef4e4ab7438d93361c162a2ba, type: 2}
-  animator: {fileID: 0}
-  spriter: {fileID: 0}
+--- !u!114 &3024857400356980333
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1294662987169064151}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a088c74c5f456344980ed2d1f7eeb65e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RangeWeaponView
+  animator: {fileID: 8740493650375671993}
+  spriter: {fileID: 4761955376540022791}
+  lookDeadZone: 0.1
 --- !u!114 &2075815918549511062
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -63,9 +78,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RangeWeaponController
   weaponSocket: {fileID: 0}
   weaponRotationPivot: {fileID: 0}
-  weapon: {fileID: 0}
+  weapon: {fileID: 6904725210380465965}
+  view: {fileID: 3024857400356980333}
+  lookDeadZone: 0.1
   playerController: {fileID: 0}
-  weaponArmLength: 0.325
+--- !u!114 &66801073435903747
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1294662987169064151}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 271714d82ef59f144818b767c1b5f7ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPresenter
+  weapon: {fileID: 6904725210380465965}
+  weaponIndicator: {fileID: 0}
+  weaponController: {fileID: 2075815918549511062}
 --- !u!1 &8917461300362727843
 GameObject:
   m_ObjectHideFlags: 0
@@ -76,7 +107,8 @@ GameObject:
   m_Component:
   - component: {fileID: 5316142116279692213}
   - component: {fileID: 4761955376540022791}
-  m_Layer: 0
+  - component: {fileID: 8740493650375671993}
+  m_Layer: 13
   m_Name: guns_v1_4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -157,3 +189,25 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!95 &8740493650375671993
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8917461300362727843}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 78d6a9808e05f62448540eb9d25cb2a6, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

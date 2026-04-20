@@ -4,9 +4,7 @@ using UnityEngine;
 public class RangeWeaponData : WeaponData
 {
     [Header("Projectile")]
-    [SerializeField] private Projectile projectilePf = null;
-
-    public Projectile ProjectilePrefab => projectilePf;
+    [SerializeField] public GameObject projectilePf = null;
 
 
 
@@ -15,7 +13,9 @@ public class RangeWeaponData : WeaponData
 
     public AudioClip Cocking;
 
-    public AudioClip ExtractMag;
+    public AudioClip Ejecting;
+
+    public AudioClip inserting;
 
 
 
@@ -25,4 +25,8 @@ public class RangeWeaponData : WeaponData
     public FireMode Mode;
 
     public float ReloadTime;
+
+    public float Damage;
+
+    public float rpm;
 }
