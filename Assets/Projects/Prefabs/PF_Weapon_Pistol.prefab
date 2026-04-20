@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 6904725210380465965}
   - component: {fileID: 3024857400356980333}
   - component: {fileID: 2075815918549511062}
-  - component: {fileID: 66801073435903747}
   m_Layer: 13
   m_Name: PF_Weapon_Pistol
   m_TagString: Weapon
@@ -82,21 +81,6 @@ MonoBehaviour:
   view: {fileID: 3024857400356980333}
   lookDeadZone: 0.1
   playerController: {fileID: 0}
---- !u!114 &66801073435903747
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1294662987169064151}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 271714d82ef59f144818b767c1b5f7ca, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WeaponPresenter
-  weapon: {fileID: 6904725210380465965}
-  weaponIndicator: {fileID: 0}
-  weaponController: {fileID: 2075815918549511062}
 --- !u!1 &8917461300362727843
 GameObject:
   m_ObjectHideFlags: 0

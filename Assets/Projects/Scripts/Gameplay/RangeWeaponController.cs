@@ -5,7 +5,7 @@ using UnityEngine.TextCore.Text;
 
 [RequireComponent(typeof(RangeWeapon))]
 [RequireComponent(typeof(RangeWeaponView))]
-public class RangeWeaponController : MonoBehaviour
+public partial class RangeWeaponController : MonoBehaviour
 {
     [SerializeField] private Transform weaponSocket;
 
@@ -25,9 +25,11 @@ public class RangeWeaponController : MonoBehaviour
 
 
 
-    public event Action<Vector2> OnLookDirectionChanged;
+    public event Action<Vector2> OnHandleLookDirectionChanged;
 
-    public event Action<int, int> OnAmmoChanged;
+    public event Action<int, int> OnHandleFireTriggered;
+
+    public event Action<int, int> OnHandleReloadTriggered;
 
 
 
@@ -41,16 +43,6 @@ public class RangeWeaponController : MonoBehaviour
     private void OnValidate()
     {
         Init();
-    }
-
-    private void Start()
-    {
-        if (weapon == null)
-        {
-            return;
-        }
-
-        OnAmmoChanged?.Invoke(weapon.CurrAmmo, weapon.MaxAmmo);
     }
 
     private void Init()
@@ -83,56 +75,6 @@ public class RangeWeaponController : MonoBehaviour
         playerController.OnLookTriggered -= HandleLookTriggered;
         playerController.OnFireTriggered -= HandleFireTriggered;
         playerController.OnReloadTriggered -= HandleReloadTriggered;
-    }
-
-    private void HandleLookTriggered(Transform creatureTransform, Vector2 input)
-    {
-        if (input.IsNearlyZero())
-        {
-            return;
-        }
-
-        // 플레이어에서 크로스헤어까지의 벡터
-        Vector2 lookDirection = (Utls.GetMouseWorldPosition() - creatureTransform.position).normalized;
-        if (lookDirection.IsNearlyZero())
-        {
-            return;
-        }
-
-        // 상각 제한
-        if (lookDirection.x < lookDeadZone && lookDirection.x > lookDeadZone * -1f)
-        {
-            return;
-        }
-
-        weaponRotationPivot.right = lookDirection;
-        weaponSocket.rotation = weaponRotationPivot.rotation;
-
-        view.UpdateLookDirection(lookDirection);
-        view.UpdateFlip();
-
-        OnLookDirectionChanged?.Invoke(lookDirection);
-    }
-
-    private void HandleFireTriggered()
-    {
-        if (!TryFire())
-        {
-            return;
-        }
-
-        projectilePool?.Get();
-        OnAmmoChanged?.Invoke(weapon.CurrAmmo, weapon.MaxAmmo);
-    }
-
-    private void HandleReloadTriggered()
-    {
-        if (!TryReload())
-        {
-            return;
-        }
-
-        OnAmmoChanged?.Invoke(weapon.CurrAmmo, weapon.MaxAmmo);
     }
 
     private void OnDrawGizmos()
@@ -189,10 +131,7 @@ public class RangeWeaponController : MonoBehaviour
 
     private bool TryFire()
     {
-        if (weapon.CurrAmmo <= 0)
-        {
-            return false;
-        }
+        if (weapon.CurrAmmo <= 0) return false;
 
         weapon.CurrAmmo--;
         return true;
@@ -200,12 +139,58 @@ public class RangeWeaponController : MonoBehaviour
 
     private bool TryReload()
     {
-        if (weapon.CurrAmmo >= weapon.MaxAmmo)
-        {
-            return false;
-        }
+        if (weapon.CurrAmmo >= weapon.MaxAmmo) return false;
 
         weapon.CurrAmmo = weapon.MaxAmmo;
         return true;
+    }
+}
+
+
+public partial class RangeWeaponController
+{
+    private void HandleLookTriggered(Transform creatureTransform, Vector2 input)
+    {
+        if (input.IsNearlyZero())
+        {
+            return;
+        }
+
+        Vector2 lookDirection = (Utls.GetMouseWorldPosition() - creatureTransform.position).normalized;
+        if (lookDirection.IsNearlyZero())
+        {
+            return;
+        }
+
+        // 상각 제한
+        if (lookDirection.x < lookDeadZone && lookDirection.x > lookDeadZone * -1f)
+        {
+            return;
+        }
+
+        weapon.LookDirection = lookDirection;
+
+        weaponRotationPivot.right = weapon.LookDirection;
+        weaponSocket.rotation = weaponRotationPivot.rotation;
+
+        OnHandleLookDirectionChanged?.Invoke(weapon.LookDirection);
+    }
+
+    private void HandleFireTriggered()
+    {
+        if (!TryFire())
+        {
+            return;
+        }
+
+        projectilePool?.Get();
+        OnHandleFireTriggered?.Invoke(weapon.CurrAmmo, weapon.MaxAmmo);
+    }
+
+    private void HandleReloadTriggered()
+    {
+        if (!TryReload()) return;
+
+        OnHandleReloadTriggered?.Invoke(weapon.CurrAmmo, weapon.MaxAmmo);
     }
 }

@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class WeaponIndicator : MonoBehaviour
 {
-    [SerializeField] private WeaponPresenter presenter;
+    [SerializeField] private RangeWeaponController weaponController;
 
     [SerializeField] private TextMeshProUGUI ammoText;
 
@@ -22,17 +22,19 @@ public class WeaponIndicator : MonoBehaviour
 
     private void Init()
     {
-        presenter = Utls.FindComponentByTag<WeaponPresenter>(UnityConstant.Tags.Weapon);
+        weaponController ??= FindFirstObjectByType<RangeWeaponController>();
     }
 
     private void OnEnable()
     {
-        presenter.OnAmmoChanged += UpdateAmmoText;
+        weaponController.OnHandleFireTriggered += UpdateAmmoText;
+        weaponController.OnHandleReloadTriggered += UpdateAmmoText;
     }
 
     private void OnDisable()
     {
-        presenter.OnAmmoChanged -= UpdateAmmoText;
+        weaponController.OnHandleFireTriggered -= UpdateAmmoText;
+        weaponController.OnHandleReloadTriggered -= UpdateAmmoText;
     }
 
     private void UpdateAmmoText(int currentAmmo, int maxAmmo)

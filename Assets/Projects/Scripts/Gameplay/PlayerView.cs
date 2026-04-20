@@ -1,67 +1,51 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Player))]
 [DisallowMultipleComponent]
 public class PlayerView : MonoBehaviour
 {
+    [SerializeField] private Player player = null;
+
     [SerializeField] private Animator animator = null;
 
     [SerializeField] private SpriteRenderer spriter = null;
 
     [SerializeField] private float lookDeadZone = 0.1f;
 
-    private Vector2 lookDirection = Vector2.right;
 
 
+    private void OnValidate()
+    {
+        Init();
+    }
 
-    public Vector2 LookDirection => lookDirection;
-
-
+    private void Awake()
+    {
+        Init();        
+    }
 
     public void Init()
     {
-        if (animator == null)
-        {
-            animator = GetComponent<Animator>();
-        }
-
-        if (spriter == null)
-        {
-            spriter = GetComponent<SpriteRenderer>();
-        }
+        player = Utls.FindComponent<Player>(gameObject);
+        animator = Utls.FindComponent<Animator>(gameObject);
+        spriter = Utls.FindComponent<SpriteRenderer>(gameObject);
     }
 
-    public void UpdateLookDirection(Vector2 direction)
+    private void Update()
     {
-        if (direction.IsNearlyZero())
-        {
-            return;
-        }
-
-        lookDirection = direction.normalized;
+        UpdateFlip();
+        UpdateAnimationParameters();
     }
 
     public void UpdateFlip()
     {
-        if (spriter == null)
-        {
-            return;
-        }
-
-        spriter.flipX =
-            lookDirection.x < lookDeadZone * -1f ? true :
-            lookDirection.x > lookDeadZone ? false :
-            spriter.flipX;
+        spriter.flipX = player.LookDirection.x < lookDeadZone * -1f ? true : player.LookDirection.x > lookDeadZone ? false : spriter.flipX;
     }
 
-    public void ApplyAnimation(bool isMoving, bool isGroggy, bool isRolling)
+    public void UpdateAnimationParameters()
     {
-        if (animator == null)
-        {
-            return;
-        }
-
-        animator.SetBool(UnityConstant.Animator.Parameters.AC_Player.Bool.IsMoving, isMoving);
-        animator.SetBool(UnityConstant.Animator.Parameters.AC_Player.Bool.IsGroggy, isGroggy);
-        animator.SetBool(UnityConstant.Animator.Parameters.AC_Player.Bool.IsRoll, isRolling);
+        animator.SetBool(UnityConstant.Animator.Parameters.AC_Player.Bool.IsMoving, player.IsMoving);
+        animator.SetBool(UnityConstant.Animator.Parameters.AC_Player.Bool.IsGroggy, player.IsGroggy);
+        animator.SetBool(UnityConstant.Animator.Parameters.AC_Player.Bool.IsRoll, player.IsRolling);
     }
 }

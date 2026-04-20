@@ -5,16 +5,11 @@ using UnityEngine.InputSystem;
 using US2D.Network.Logic;
 
 [RequireComponent(typeof(Player))]
-[RequireComponent(typeof(PlayerView))]
 public partial class PlayerController : MonoBehaviour, InputMappingContext.IPlayerActions
 {
     [SerializeField] private Player player = null;
 
     [SerializeField] private PlayerView view = null;
-
-    private Vector2 moveDirection = Vector2.zero;
-
-    private Vector2 lookDirection = Vector2.right;
 
 
 
@@ -40,15 +35,9 @@ public partial class PlayerController : MonoBehaviour, InputMappingContext.IPlay
 
     private void Init()
     {
-        if (player == null)
-        {
-            player = GetComponent<Player>();
-        }
+        player = GetComponent<Player>();
+        view = GetComponent<PlayerView>();
 
-        if (view == null)
-        {
-            view = GetComponent<PlayerView>();
-        }
 
         player.Init();
         view.Init();
@@ -74,24 +63,42 @@ public partial class PlayerController : MonoBehaviour, InputMappingContext.IPlay
 
     private void Update()
     {
-        ApplyMovement();
+        UpdateMovement();
     }
 
-    private void LateUpdate()
+    private void UpdateMovement()
     {
-        view.ApplyAnimation(player.IsMoving, player.IsGroggy, player.IsRolling);
-    }
+        if (player == null)
+        {
+            return;
+        }
 
+        Vector2 frameVelocity = new Vector2
+        (
+            player.MoveDirection.x * player.Data.MaxSpeed.x,
+            player.MoveDirection.y * player.Data.MaxSpeed.y
+        );
+
+        transform.position += (Vector3)frameVelocity * Time.deltaTime;
+    }
+}
+
+
+/// <summary>
+/// 입력, 트리거 처리
+/// </summary>
+public partial class PlayerController
+{
     public void OnMove(InputAction.CallbackContext context)
     {
         Vector2 input = context.ReadValue<Vector2>();
 
-        moveDirection = input.IsNearlyZero() ? Vector2.zero : input.normalized;
-        player.IsMoving = moveDirection.IsNotNearlyZero();
+        player.MoveDirection = input.IsNearlyZero() ? Vector2.zero : input.normalized;
+        player.IsMoving = player.MoveDirection.IsNotNearlyZero();
         OnMoveTriggered?.Invoke();
     }
 
-    public void OnLook(InputAction.CallbackContext context) 
+    public void OnLook(InputAction.CallbackContext context)
     {
         Vector2 input = context.ReadValue<Vector2>();
         if (input.IsNearlyZero())
@@ -99,14 +106,12 @@ public partial class PlayerController : MonoBehaviour, InputMappingContext.IPlay
             return;
         }
 
-        lookDirection = (Utls.GetMouseWorldPosition() - transform.position).normalized;
-        view.UpdateLookDirection(lookDirection);
-        view.UpdateFlip();
+        player.LookDirection = (Utls.GetMouseWorldPosition() - transform.position).normalized;
 
-        OnLookTriggered?.Invoke(transform, lookDirection);
+        OnLookTriggered?.Invoke(transform, player.LookDirection);
     }
 
-    public void OnFire(InputAction.CallbackContext context) 
+    public void OnFire(InputAction.CallbackContext context)
     {
         if (!context.performed)
         {
@@ -139,22 +144,6 @@ public partial class PlayerController : MonoBehaviour, InputMappingContext.IPlay
         }
 
         OnReloadTriggered?.Invoke();
-    }
-
-    private void ApplyMovement()
-    {
-        if (player == null)
-        {
-            return;
-        }
-
-        Vector2 frameVelocity = new Vector2
-        (
-            moveDirection.x * player.Data.MaxSpeed.x,
-            moveDirection.y * player.Data.MaxSpeed.y
-        );
-
-        transform.position += (Vector3)frameVelocity * Time.deltaTime;
     }
 }
 

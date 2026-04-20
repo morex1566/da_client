@@ -1150,7 +1150,7 @@ public partial class @InputMappingContext: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""16f13586-08c1-4f16-968d-18f4a7db1e48"",
-                    ""path"": """",
+                    ""path"": ""<Keyboard>/r"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",

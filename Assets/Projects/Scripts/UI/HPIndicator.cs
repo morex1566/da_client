@@ -3,9 +3,10 @@ using UnityEngine;
 using UnityEngine.UI;
 
 
+[RequireComponent(typeof(Slider))]
 public class HPIndicator : MonoBehaviour
 {
-    [SerializeField] private PlayerPresenter presenter;
+    [SerializeField] private PlayerController playerController;
 
     [SerializeField] private Slider hpBar;
 
@@ -25,18 +26,18 @@ public class HPIndicator : MonoBehaviour
 
     private void Init()
     {
-        presenter = Utls.FindComponentByTag<PlayerPresenter>(UnityConstant.Tags.Player);
+        playerController ??= FindFirstObjectByType<PlayerController>();
+        hpBar ??= GetComponent<Slider>();
     }
-
 
     private void OnEnable()
     {
-        presenter.OnHpChanged += UpdateHpIndicator;
+        playerController.OnColliderTriggered += UpdateHpIndicator;
     }
 
     private void OnDisable()
     {
-        presenter.OnHpChanged -= UpdateHpIndicator;
+        playerController.OnColliderTriggered -= UpdateHpIndicator;
     }
 
     private void UpdateHpIndicator(float currentHp, float maxHp)

@@ -498,17 +498,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 36487e210e33b334d9d480f555546fdf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RangeWeaponController
---- !u!114 &1128367169 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2262843536748363342, guid: ebdd82d18a4a2bc4395b0fa176c270cc, type: 3}
-  m_PrefabInstance: {fileID: 7652593909841846930}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5d37dddde5db03d4f992447357239344, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: '::'
 --- !u!1 &1170007514
 GameObject:
   m_ObjectHideFlags: 0
@@ -782,7 +771,6 @@ GameObject:
   - component: {fileID: 1890210590}
   - component: {fileID: 1890210591}
   - component: {fileID: 1890210587}
-  - component: {fileID: 1890210592}
   - component: {fileID: 1890210589}
   m_Layer: 10
   m_Name: player
@@ -894,24 +882,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d9b1a5b9434489c89931c1bd2d681d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerView
-  animator: {fileID: 1170007515}
-  spriter: {fileID: 1170007516}
-  lookDeadZone: 0.1
---- !u!114 &1890210592
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1890210585}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 16c780f2c1329114d95611268a511a87, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerPresenter
   player: {fileID: 1890210590}
-  hpIndicator: {fileID: 1128367169}
-  playerController: {fileID: 1890210587}
+  animator: {fileID: 0}
+  spriter: {fileID: 0}
+  lookDeadZone: 0.1
 --- !u!1001 &2146551137828658525
 PrefabInstance:
   m_ObjectHideFlags: 0
