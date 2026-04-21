@@ -7,7 +7,7 @@ public interface IWeapon
 
 public abstract class Weapon : MonoBehaviour
 {
-    [SerializeField] protected WeaponData data = null;
+    [field : SerializeField] protected WeaponData Data { get; set; } = null;
 
     public bool IsLeft { get; set; }
 }

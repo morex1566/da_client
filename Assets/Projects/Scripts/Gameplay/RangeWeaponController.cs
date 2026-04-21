@@ -4,16 +4,14 @@ using UnityEngine.Pool;
 using UnityEngine.TextCore.Text;
 
 [RequireComponent(typeof(RangeWeapon))]
-[RequireComponent(typeof(RangeWeaponView))]
+[DisallowMultipleComponent]
 public partial class RangeWeaponController : MonoBehaviour
 {
+    [SerializeField, ReadOnly] private RangeWeapon weapon;
+
     [SerializeField] private Transform weaponSocket;
 
     [SerializeField] private Transform weaponRotationPivot;
-
-    [SerializeField] private RangeWeapon weapon;
-
-    [SerializeField] private RangeWeaponView view;
 
     private ObjectPool<Projectile> projectilePool;
 
@@ -47,9 +45,8 @@ public partial class RangeWeaponController : MonoBehaviour
 
     private void Init()
     {
-        weapon = Utls.FindComponent<RangeWeapon>(gameObject);
+        weapon = GetComponent<RangeWeapon>();
         playerController = Utls.FindComponentByTag<PlayerController>(UnityConstant.Tags.Player);
-        view = Utls.FindComponent<RangeWeaponView>(gameObject);
 
         projectilePool = new ObjectPool<Projectile>
         (

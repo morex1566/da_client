@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5043777580402488581}
   - component: {fileID: 7551996306501427816}
   m_Layer: 0
-  m_Name: NetManager
+  m_Name: PF_System_NetManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

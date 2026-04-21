@@ -5,11 +5,11 @@ using UnityEngine.InputSystem;
 using US2D.Network.Logic;
 
 [RequireComponent(typeof(Player))]
+[DisallowMultipleComponent]
 public partial class PlayerController : MonoBehaviour, InputMappingContext.IPlayerActions
 {
-    [SerializeField] private Player player = null;
+    [SerializeField, ReadOnly] private Player player = null;
 
-    [SerializeField] private PlayerView view = null;
 
 
 
@@ -28,6 +28,12 @@ public partial class PlayerController : MonoBehaviour, InputMappingContext.IPlay
 
 
 
+
+    private void OnValidate()
+    {
+        Init();
+    }
+
     private void Awake()
     {
         Init();
@@ -36,11 +42,6 @@ public partial class PlayerController : MonoBehaviour, InputMappingContext.IPlay
     private void Init()
     {
         player = GetComponent<Player>();
-        view = GetComponent<PlayerView>();
-
-
-        player.Init();
-        view.Init();
     }
 
     private void OnEnable()

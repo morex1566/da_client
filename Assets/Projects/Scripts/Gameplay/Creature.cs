@@ -3,19 +3,20 @@ using UnityEngine;
 
 public abstract class Creature : MonoBehaviour
 {
-    [SerializeField] protected CreatureData data = null;
+    [field: SerializeField] public CreatureData Data { get; set; } = null;
 
-    public CreatureData Data => data;
+    public float CurrentHp { get; set; } = 0f;
 
-    public float CurrentHp { get; set; }
+    public float CurrentSp { get; set; } = 0f;
 
-    public float CurrentSp { get; set; }
+    public bool IsDead { get; set; } = false;
 
-    public bool IsDead { get; set; }
+    public bool IsMoving { get; set; } = false;
 
-    public bool IsMoving { get; set; }
+    public bool IsLeft { get; set; } = false;
 
-    public bool IsLeft { get; set; }
+
+
 
 
 
@@ -24,9 +25,9 @@ public abstract class Creature : MonoBehaviour
         Init();
     }
 
-    public virtual void Init()
+    protected virtual void Init()
     {
-        CurrentHp = data.MaxHp;
-        CurrentSp = data.MaxSp;
+        CurrentHp = Data.MaxHp;
+        CurrentSp = Data.MaxSp;
     }
 }

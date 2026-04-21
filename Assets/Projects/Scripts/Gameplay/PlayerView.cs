@@ -4,13 +4,15 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class PlayerView : MonoBehaviour
 {
-    [SerializeField] private Player player = null;
+    [SerializeField, ReadOnly] private Player player = null;
 
     [SerializeField] private Animator animator = null;
 
     [SerializeField] private SpriteRenderer spriter = null;
 
     [SerializeField] private float lookDeadZone = 0.1f;
+
+
 
 
 
@@ -26,7 +28,7 @@ public class PlayerView : MonoBehaviour
 
     public void Init()
     {
-        player = Utls.FindComponent<Player>(gameObject);
+        player = GetComponent<Player>();
         animator = Utls.FindComponent<Animator>(gameObject);
         spriter = Utls.FindComponent<SpriteRenderer>(gameObject);
     }

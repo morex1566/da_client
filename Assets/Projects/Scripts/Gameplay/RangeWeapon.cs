@@ -26,7 +26,7 @@ public class RangeWeapon : Weapon
 
 
 
-    public RangeWeaponData Data => data as RangeWeaponData;
+    public new RangeWeaponData Data => base.Data as RangeWeaponData;
 
 
 
@@ -42,7 +42,7 @@ public class RangeWeapon : Weapon
 
     public void Init()
     {
-        RangeWeaponData rangeWeaponData = data as RangeWeaponData;
+        RangeWeaponData rangeWeaponData = base.Data as RangeWeaponData;
         {
             MaxAmmo = rangeWeaponData.MaxAmmo;
             CurrAmmo = MaxAmmo;

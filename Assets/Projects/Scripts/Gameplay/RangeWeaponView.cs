@@ -1,19 +1,25 @@
 using UnityEngine;
 
+[RequireComponent(typeof(RangeWeapon))]
 [DisallowMultipleComponent]
 public class RangeWeaponView : MonoBehaviour
 {
-    [SerializeField] private RangeWeapon weapon = null;
+    [SerializeField, ReadOnly] private RangeWeapon weapon = null;
 
     [SerializeField] private Animator animator = null;
 
     [SerializeField] private SpriteRenderer spriter = null;
 
+    [SerializeField] private AudioSource audioSource = null;
+
     [SerializeField] private float lookDeadZone = 0.1f;
 
 
+
+
     [Header("Internal")]
-    [SerializeField] private PlayerController playerController = null;
+    [SerializeField] private RangeWeaponController weaponController = null;
+
 
 
 
@@ -30,20 +36,21 @@ public class RangeWeaponView : MonoBehaviour
 
     public void Init()
     {
-        weapon = Utls.FindComponent<RangeWeapon>(gameObject);
+        weapon = GetComponent<RangeWeapon>();
+        weaponController = GetComponent<RangeWeaponController>();
         animator = Utls.FindComponent<Animator>(gameObject);
         spriter = Utls.FindComponent<SpriteRenderer>(gameObject);
-        playerController = Utls.FindComponentByTag<PlayerController>(UnityConstant.Tags.Player);
+        audioSource = Utls.FindComponent<AudioSource>(gameObject);
     }
 
     private void OnEnable()
     {
-        playerController.OnFireTriggered += SetOnFireTrigger;
+        weaponController.OnHandleFireTriggered += SetOnFireTrigger;
     }
 
     private void OnDisable()
     {
-        playerController.OnFireTriggered -= SetOnFireTrigger;
+        weaponController.OnHandleFireTriggered -= SetOnFireTrigger;
     }
 
     private void Update()
@@ -60,11 +67,16 @@ public class RangeWeaponView : MonoBehaviour
 
     public void UpdateAnimationParameters()
     {
-        animator.SetBool(UnityConstant.Animator.Parameters.AC_Weapon_Pistol.Bool.IsReload, weapon.State == RangeWeaponState.Reload);
+        animator.SetBool(UnityConstant.Animator.Parameters.AC_Weapon_Pistol.Bool.IsReload,  weapon.State == RangeWeaponState.Reload);
     }
 
-    public void SetOnFireTrigger()
+    public void SetOnFireTrigger(int currentAmmo, int maxAmmo)
     {
         animator.SetTrigger(UnityConstant.Animator.Parameters.AC_Weapon_Pistol.Trigger.OnFire);
+    }
+
+    public void AudioPlayFire()
+    {
+        audioSource.PlayOneShot(weapon.Data.Fire);
     }
 }
