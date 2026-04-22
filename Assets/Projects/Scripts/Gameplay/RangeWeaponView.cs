@@ -67,7 +67,7 @@ public class RangeWeaponView : MonoBehaviour
 
     public void UpdateAnimationParameters()
     {
-        animator.SetBool(UnityConstant.Animator.Parameters.AC_Weapon_Pistol.Bool.IsReload,  weapon.State == RangeWeaponState.Reload);
+        animator.SetBool(UnityConstant.Animator.Parameters.AC_Weapon_Pistol.Bool.IsReload,  weapon.StateType == RangeWeaponStateType.Reload);
     }
 
     public void SetOnFireTrigger(int currentAmmo, int maxAmmo)

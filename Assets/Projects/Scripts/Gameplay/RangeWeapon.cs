@@ -1,18 +1,5 @@
 using UnityEngine;
 
-public enum FireMode
-{
-    Auto,
-    SemiAuto,
-    Burst
-}
-
-public enum RangeWeaponState
-{
-    Idle,
-    Reload
-}
-
 public class RangeWeapon : Weapon
 {
     public int MaxAmmo { get; set; }
@@ -21,12 +8,13 @@ public class RangeWeapon : Weapon
 
     public Vector2 LookDirection { get; set; } = Vector2.right;
 
-    public RangeWeaponState State { get; set; } = RangeWeaponState.Idle;
+    public RangeWeaponStateType StateType { get; set; } = RangeWeaponStateType.Idle;
 
 
 
 
     public new RangeWeaponData Data => base.Data as RangeWeaponData;
+
 
 
 

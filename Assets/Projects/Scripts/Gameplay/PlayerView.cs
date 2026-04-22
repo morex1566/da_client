@@ -1,6 +1,8 @@
+using System;
 using UnityEngine;
 
 [RequireComponent(typeof(Player))]
+[RequireComponent(typeof(PlayerController))]
 [DisallowMultipleComponent]
 public class PlayerView : MonoBehaviour
 {
@@ -13,9 +15,6 @@ public class PlayerView : MonoBehaviour
     [SerializeField] private float lookDeadZone = 0.1f;
 
 
-
-
-
     private void OnValidate()
     {
         Init();
@@ -23,7 +22,7 @@ public class PlayerView : MonoBehaviour
 
     private void Awake()
     {
-        Init();        
+        Init();
     }
 
     public void Init()
@@ -41,13 +40,33 @@ public class PlayerView : MonoBehaviour
 
     public void UpdateFlip()
     {
-        spriter.flipX = player.LookDirection.x < lookDeadZone * -1f ? true : player.LookDirection.x > lookDeadZone ? false : spriter.flipX;
+        // 마우스가 위쪽에 있을 때 캐릭터가 좌우로 계속 덜덜 떨림 방지
+        if (Mathf.Abs(player.LookDirection.x) < lookDeadZone)
+        {
+            return;
+        }
+
+        spriter.flipX = player.LookDirection.x < 0;
     }
 
     public void UpdateAnimationParameters()
     {
-        animator.SetBool(UnityConstant.Animator.Parameters.AC_Player.Bool.IsMoving, player.IsMoving);
-        animator.SetBool(UnityConstant.Animator.Parameters.AC_Player.Bool.IsGroggy, player.IsGroggy);
-        animator.SetBool(UnityConstant.Animator.Parameters.AC_Player.Bool.IsRoll, player.IsRolling);
+        animator.SetBool
+        (
+            UnityConstant.Animator.Parameters.AC_Player.Bool.IsIdle,
+            player.StateMachine.CurrentState.StateType == PlayerStateType.IDLE
+        );
+
+        animator.SetBool
+        (
+            UnityConstant.Animator.Parameters.AC_Player.Bool.IsMoving,
+            player.StateMachine.CurrentState.StateType == PlayerStateType.MOVE
+        );
+
+        animator.SetBool
+        (
+            UnityConstant.Animator.Parameters.AC_Player.Bool.IsRoll,
+            player.StateMachine.CurrentState.StateType == PlayerStateType.ROLL
+        );
     }
 }

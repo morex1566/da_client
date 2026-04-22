@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1580133137540654852}
+  - component: {fileID: 286702082205959401}
   m_Layer: 0
   m_Name: PF_Weapon_Pistol_Mag
   m_TagString: Untagged
@@ -32,6 +33,18 @@ Transform:
   - {fileID: 768815089095389206}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &286702082205959401
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3451001289989916252}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e43d244d47f011f41846770a8a0e5c99, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponMag
 --- !u!1 &8384827337617243576
 GameObject:
   m_ObjectHideFlags: 0

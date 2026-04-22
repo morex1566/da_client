@@ -1,6 +1,12 @@
 using System;
 using UnityEngine;
 
+public enum CreatureStateAttribute
+{
+    IsLeft,
+    IsReload
+}
+
 public abstract class Creature : MonoBehaviour
 {
     [field: SerializeField] public CreatureData Data { get; set; } = null;
@@ -9,16 +15,13 @@ public abstract class Creature : MonoBehaviour
 
     public float CurrentSp { get; set; } = 0f;
 
-    public bool IsDead { get; set; } = false;
-
-    public bool IsMoving { get; set; } = false;
-
     public bool IsLeft { get; set; } = false;
 
 
-
-
-
+    protected virtual void OnValidate()
+    {
+        Init();
+    }
 
     protected virtual void Awake()
     {
