@@ -14,7 +14,9 @@ public class PlayerIdleState : PlayerState
     {
         if (inputSnapshot.move.IsNearlyZero()) return;
 
-        Player.MoveDirection = inputSnapshot.move.normalized;
+        Vector3 input = inputSnapshot.move.normalized;
+
+        Player.MoveDirection = new Vector3(input.x, 0, input.y);
     }
 
     private void SetLookDirection(PlayerInputSnapshot inputSnapshot)

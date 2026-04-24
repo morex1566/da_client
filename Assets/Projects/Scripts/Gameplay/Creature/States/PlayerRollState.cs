@@ -21,11 +21,11 @@ public class PlayerRollState : PlayerState
         Vector3 frameVelocity = new Vector3
         (
             Player.MoveDirection.x * Player.Data.MaxSpeed.x,
-            Player.MoveDirection.y * Player.Data.MaxSpeed.y,
-            0
+            0,
+            Player.MoveDirection.z * Player.Data.MaxSpeed.z
         );
 
-        
+
         AnimatorStateInfo info = animator.GetCurrentAnimatorStateInfo(0);
 
         // 구르기 초기에는 빠르게 이동
@@ -45,11 +45,13 @@ public class PlayerRollState : PlayerState
     // 애니메이션 마지막 즈음엔 살짝 움직일 수 있게?
     private void SetMoveDirection(PlayerInputSnapshot inputSnapshot)
     {
-        AnimatorStateInfo info = animator.GetCurrentAnimatorStateInfo(0);
+        if (inputSnapshot.move.IsNearlyZero()) return;
 
+        AnimatorStateInfo info = animator.GetCurrentAnimatorStateInfo(0);
         if (info.IsName(UnityConstant.Animator.Parameters.AC_Player.Bool.IsRoll) && info.normalizedTime <= 0.275f) return;
 
-        Player.MoveDirection = Vector3.Lerp(Player.MoveDirection, inputSnapshot.move.normalized, Time.deltaTime * 10);
+        Vector3 input = inputSnapshot.move.normalized;
+        Player.MoveDirection = Vector3.Lerp(Player.MoveDirection, new Vector3(input.x, 0, input.y), Time.deltaTime * 10);
     }
 
     public override void Evaluate(PlayerInputSnapshot input)

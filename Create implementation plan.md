@@ -1,3 +1,291 @@
+# [2026-04-23 13-39] us2d_client 웨폰 어태치먼트 데이터(WeaponAttachmentData) 파일 분리 및 에셋 스크립트 레퍼런스 복구 (SDP)
+
+## 0) 구현 목표 (요약)
+- **목표**: 현재 `WeaponAttachmentData.cs` 1개 파일에 몰려있는 `ScriptableObject` 데이터 타입들을 **클래스 1개 = 파일 1개**로 분리하여 유지보수성을 올립니다.
+- **상용 기준(중요)**: Unity는 `.cs` 파일 단위로 `.meta GUID`를 통해 스크립트를 참조하므로, 단순 분리 시 **기존 `.asset/.prefab/.unity`의 스크립트 레퍼런스가 깨질 수 있음** → 이 작업에서는 **스크립트 파일 분리 + 관련 `.asset`의 `m_Script` 레퍼런스 복구까지 함께** 진행합니다.
+- **범위**: 웨폰 어태치먼트 데이터 관련 코드/에셋만(불필요한 리팩터링/네이밍 변경 금지).
+
+## 1) 현재 상태 (확인된 사실)
+- 단일 파일: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\WeaponAttachmentData.cs`
+  - 포함 클래스: `WeaponAttachmentSlot`, `WeaponAttachmentData`, `MagData`, `GripData`, `MuzzleData`, `BarrelAssemblyData`, `ScopeData`, `UpperBodyData`
+  - 해당 스크립트 메타 GUID: `b8cc889ebd9aaf647a3624a54bdc3185` (`WeaponAttachmentData.cs.meta`)
+- 리소스 에셋 2개가 **현재 `m_Script: {fileID: 0}`** 상태로 확인됨(=Unity에서 Missing Script 가능성 높음)
+  - `D:\Devs\us2d_client\Assets\Projects\Resources\SO_Weapon_Pistol_BarrelAssembly_01.asset` (`Assembly-CSharp::BarrelAssemblyData`)
+  - `D:\Devs\us2d_client\Assets\Projects\Resources\SO_Weapon.asset` (`Assembly-CSharp::ScopeData`)
+
+## 2) 설계(접근 방식)
+### 2.1. 파일 분리 원칙
+- 클래스명/필드명/프로퍼티명은 **그대로 유지** (Unity 직렬화 안정성).
+- 파일은 기존 폴더에 유지: `Assets/Projects/Scripts/Gameplay/Weapon/` (폴더 이동으로 인한 불필요한 메타/임포트 변동 최소화)
+- 분리 후 목표 파일 구성:
+  - `WeaponAttachmentSlot.cs`
+  - `WeaponAttachmentData.cs` (base만 남김)
+  - `MagData.cs`, `GripData.cs`, `MuzzleData.cs`, `BarrelAssemblyData.cs`, `ScopeData.cs`, `UpperBodyData.cs`
+
+### 2.2. Unity 스크립트 레퍼런스(메타 GUID) 전략
+- `WeaponAttachmentData.cs.meta`의 GUID(`b8cc889e...`)는 **그대로 유지**합니다.
+- 새로 생성되는 `.cs`들에 대해 `.meta`를 **명시적으로 생성**하여 GUID를 고정합니다(상용/협업에서 재현성 확보).
+  - `WeaponAttachmentSlot.cs.meta` GUID: `1f5093639a0949a398b4cf9293f08c58`
+  - `MagData.cs.meta` GUID: `67d9b5a4abfd4b178d16ba4159309344`
+  - `GripData.cs.meta` GUID: `c3bdb5d9039d43c89d6cf84921ec3c54`
+  - `MuzzleData.cs.meta` GUID: `4129406d7f854ddcbba4c6e9eced03b9`
+  - `BarrelAssemblyData.cs.meta` GUID: `ca73ccae3a634c62b84c549e1dc71842`
+  - `ScopeData.cs.meta` GUID: `cd1fce0f7bdc492ab5d11b671b71825c`
+  - `UpperBodyData.cs.meta` GUID: `92c404c738d8428cb4d506bcaf6938f1`
+
+### 2.3. 에셋 레퍼런스 복구(필수)
+- 분리 이후, 해당 타입을 쓰는 `.asset`에서 `m_Script: {fileID: 0}` → **정상 스크립트 레퍼런스**로 교체합니다.
+  - `BarrelAssemblyData` 에셋은 `BarrelAssemblyData.cs.meta` GUID를 사용
+  - `ScopeData` 에셋은 `ScopeData.cs.meta` GUID를 사용
+- 형식:
+  - `m_Script: {fileID: 11500000, guid: <script-guid>, type: 3}`
+
+## 3) 로직 흐름(데이터 구조 관점)
+1. `WeaponAttachmentData`는 `slots(List<WeaponAttachmentSlot>)`을 가짐
+2. 각 `WeaponAttachmentSlot`은 `(Type, Data)`를 가짐
+3. `Data`는 다른 `WeaponAttachmentData`(파생 포함)를 참조할 수 있어, “어태치먼트 트리/그래프”를 구성 가능
+
+## 4) 수정/생성 파일 (경로)
+### 4.1. 코드
+- 수정: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\WeaponAttachmentData.cs`
+- 생성: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\WeaponAttachmentSlot.cs`
+- 생성: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\MagData.cs`
+- 생성: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\GripData.cs`
+- 생성: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\MuzzleData.cs`
+- 생성: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\BarrelAssemblyData.cs`
+- 생성: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\ScopeData.cs`
+- 생성: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\UpperBodyData.cs`
+
+### 4.2. 메타
+- 생성: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\WeaponAttachmentSlot.cs.meta`
+- 생성: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\MagData.cs.meta`
+- 생성: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\GripData.cs.meta`
+- 생성: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\MuzzleData.cs.meta`
+- 생성: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\BarrelAssemblyData.cs.meta`
+- 생성: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\ScopeData.cs.meta`
+- 생성: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\UpperBodyData.cs.meta`
+
+### 4.3. 에셋(YAML)
+- 수정: `D:\Devs\us2d_client\Assets\Projects\Resources\SO_Weapon_Pistol_BarrelAssembly_01.asset`
+- 수정: `D:\Devs\us2d_client\Assets\Projects\Resources\SO_Weapon.asset`
+
+## 5) 구현 코드 (SDP에 전체 코드 포함)
+### 5.1. `WeaponAttachmentSlot.cs`
+대상: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\WeaponAttachmentSlot.cs`
+
+```csharp
+using System;
+
+[Serializable]
+public class WeaponAttachmentSlot
+{
+    public WeaponAttachmentType Type;
+    public WeaponAttachmentData Data;
+}
+```
+
+### 5.2. `WeaponAttachmentData.cs` (base만 유지)
+대상: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\WeaponAttachmentData.cs`
+
+```csharp
+using System.Collections.Generic;
+using UnityEngine;
+
+public abstract class WeaponAttachmentData : ScriptableObject
+{
+    [field: SerializeField] public int Price { get; set; } = 0;
+
+    [field: SerializeField] public List<WeaponAttachmentSlot> slots { get; set; } = new();
+}
+```
+
+### 5.3. 파생 ScriptableObject 파일들
+#### 5.3.1. `MagData.cs`
+대상: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\MagData.cs`
+
+```csharp
+using UnityEngine;
+
+[CreateAssetMenu(fileName = "MagData", menuName = "Scriptable Objects/Weapon Attachment/Mag")]
+public class MagData : WeaponAttachmentData
+{
+    [Header("Setup")]
+    [field: SerializeField] public int MaxAmmo { get; set; } = 0;
+    [field: SerializeField] public float ReloadTimeRate { get; set; } = 0f;
+
+    [Header("Sprite")]
+    [field: SerializeField] public Sprite MagSprite { get; set; } = null;
+
+    [Header("SFX")]
+    [field: SerializeField] public AudioClip MagInSfx { get; set; } = null;
+    [field: SerializeField] public AudioClip MagOutSfx { get; set; } = null;
+    [field: SerializeField] public AudioClip MagDropSfx { get; set; } = null;
+}
+```
+
+#### 5.3.2. `GripData.cs`
+대상: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\GripData.cs`
+
+```csharp
+using UnityEngine;
+
+[CreateAssetMenu(fileName = "GripData", menuName = "Scriptable Objects/Weapon Attachment/Grip")]
+public class GripData : WeaponAttachmentData
+{
+    [Header("Setup")]
+    [field: SerializeField] public float MoveSpeedRate { get; set; } = 1f;
+}
+```
+
+#### 5.3.3. `MuzzleData.cs`
+대상: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\MuzzleData.cs`
+
+```csharp
+using UnityEngine;
+
+[CreateAssetMenu(fileName = "MuzzleData", menuName = "Scriptable Objects/Weapon Attachment/Muzzle")]
+public class MuzzleData : WeaponAttachmentData
+{
+    [Header("Setup")]
+    [field: SerializeField] public float RecoilRate { get; set; } = 1f;
+
+    [Header("SFX")]
+    [field: SerializeField] public AudioClip FireSfxOverride { get; set; } = null;
+}
+```
+
+#### 5.3.4. `BarrelAssemblyData.cs`
+대상: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\BarrelAssemblyData.cs`
+
+```csharp
+using UnityEngine;
+
+[CreateAssetMenu(fileName = "BarrelAssemblyData", menuName = "Scriptable Objects/Weapon Attachment/BarrelAssembly")]
+public class BarrelAssemblyData : WeaponAttachmentData
+{
+    [Header("Setup")]
+    [field: SerializeField] public WeaponAttachmentBodyType BodyType { get; set; } = WeaponAttachmentBodyType.None;
+    [field: SerializeField] public float RPM { get; set; } = 200f;
+    [field: SerializeField] public float DamageRate { get; set; } = 1f;
+}
+```
+
+#### 5.3.5. `ScopeData.cs`
+대상: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\ScopeData.cs`
+
+```csharp
+using UnityEngine;
+
+[CreateAssetMenu(fileName = "ScopeData", menuName = "Scriptable Objects/Weapon Attachment/Scope")]
+public class ScopeData : WeaponAttachmentData
+{
+    [Header("Setup")]
+    [field: SerializeField] public float AccuracyRate { get; set; } = 1f;
+}
+```
+
+#### 5.3.6. `UpperBodyData.cs`
+대상: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\UpperBodyData.cs`
+
+```csharp
+using UnityEngine;
+
+[CreateAssetMenu(fileName = "UpperBodyData", menuName = "Scriptable Objects/Weapon Attachment/UpperBody")]
+public class UpperBodyData : WeaponAttachmentData
+{
+}
+```
+
+### 5.4. `.meta` 파일(고정 GUID)
+#### 5.4.1. `WeaponAttachmentSlot.cs.meta`
+대상: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\WeaponAttachmentSlot.cs.meta`
+
+```yaml
+fileFormatVersion: 2
+guid: 1f5093639a0949a398b4cf9293f08c58
+```
+
+#### 5.4.2. `MagData.cs.meta`
+대상: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\MagData.cs.meta`
+
+```yaml
+fileFormatVersion: 2
+guid: 67d9b5a4abfd4b178d16ba4159309344
+```
+
+#### 5.4.3. `GripData.cs.meta`
+대상: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\GripData.cs.meta`
+
+```yaml
+fileFormatVersion: 2
+guid: c3bdb5d9039d43c89d6cf84921ec3c54
+```
+
+#### 5.4.4. `MuzzleData.cs.meta`
+대상: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\MuzzleData.cs.meta`
+
+```yaml
+fileFormatVersion: 2
+guid: 4129406d7f854ddcbba4c6e9eced03b9
+```
+
+#### 5.4.5. `BarrelAssemblyData.cs.meta`
+대상: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\BarrelAssemblyData.cs.meta`
+
+```yaml
+fileFormatVersion: 2
+guid: ca73ccae3a634c62b84c549e1dc71842
+```
+
+#### 5.4.6. `ScopeData.cs.meta`
+대상: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\ScopeData.cs.meta`
+
+```yaml
+fileFormatVersion: 2
+guid: cd1fce0f7bdc492ab5d11b671b71825c
+```
+
+#### 5.4.7. `UpperBodyData.cs.meta`
+대상: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Weapon\UpperBodyData.cs.meta`
+
+```yaml
+fileFormatVersion: 2
+guid: 92c404c738d8428cb4d506bcaf6938f1
+```
+
+### 5.5. `.asset`의 `m_Script` 복구
+#### 5.5.1. `SO_Weapon_Pistol_BarrelAssembly_01.asset`
+대상: `D:\Devs\us2d_client\Assets\Projects\Resources\SO_Weapon_Pistol_BarrelAssembly_01.asset`
+
+```diff
+-  m_Script: {fileID: 0}
++  m_Script: {fileID: 11500000, guid: ca73ccae3a634c62b84c549e1dc71842, type: 3}
+```
+
+#### 5.5.2. `SO_Weapon.asset`
+대상: `D:\Devs\us2d_client\Assets\Projects\Resources\SO_Weapon.asset`
+
+```diff
+-  m_Script: {fileID: 0}
++  m_Script: {fileID: 11500000, guid: cd1fce0f7bdc492ab5d11b671b71825c, type: 3}
+```
+
+## 6) 테스트(수동)
+- Unity 열기 → 컴파일 에러 없음을 확인
+- `Assets/Projects/Resources/`에서
+  - `SO_Weapon_Pistol_BarrelAssembly_01`의 Inspector에 Missing Script가 아닌지 확인
+  - `SO_Weapon`의 Inspector에 Missing Script가 아닌지 확인
+- `Create > Scriptable Objects > Weapon Attachment > ...` 메뉴로 각 데이터 타입 생성이 정상 동작하는지 확인
+
+---
+
+## 7) 승인 체크박스
+- [ ] Update: SDP 내용/가정 수정 요청
+- [ ] Modify: 위 경로대로 **코드/메타/에셋** 실제 수정·생성 승인
+- [ ] Test: Unity에서 수동 테스트까지 진행 승인
+
+---
+
 # [2026-04-22 15-24] us2d_client 스크립트 실행 순서 자동 설정(에디터 스크립트) 추가 (SDP)
 
 ## 0) 구현 목표 (요약)
@@ -380,4 +668,447 @@ flowchart TD
 ## 10) 승인 체크박스
 - [ ] Update: SDP 내용/가정/다이어그램 수정 요청
 - [ ] Modify: 위 수정안(AnimatorController 및 선택 코드) 실제 반영 승인
+- [ ] Test: 유니티 플레이모드(수동) 테스트까지 진행 승인
+
+---
+
+# [2026-04-24 09-22] us2d_client 플레이어 JumpState 구현(그라운드 체크 + 입력 + 애니 파라미터 연동) (SDP)
+
+## 0) 구현 목표 (요약)
+- **목표**: 현재 비어있는 `PlayerJumpState`를 다른 스테이트(`Idle/Move/Roll`) 구조와 동일한 패턴으로 구현하고, **그라운드 체크를 `PlayerController`에서 `Physics2D.OverlapCircle`로 제공**하여 점프 시작/착지를 결정합니다.
+- **상용 기준(중요)**:
+  - 입력/상태/애니메이션이 서로 “한 프레임짜리 트리거 + 지속 파라미터” 패턴으로 안정적으로 동작해야 함.
+  - 생성 코드/자동생성 파일(`InputMappingContext.cs`)은 **가급적 수정하지 않고**, 런타임 `FindAction`로 점프 액션을 연결해 리젠/머지 리스크를 줄임.
+
+## 1) 현재 상태 (확인된 사실)
+- `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Creature\States\PlayerJumpState.cs`가 **빈 클래스**입니다.
+- `PlayerStateType`에 **JUMP가 정의되어 있지 않고**, `PlayerStateMachine`에도 JumpState가 등록되어 있지 않습니다.
+- `D:\Devs\us2d_client\Assets\Projects\Anims\Gameplay\AC_Player.controller`에 Animator Bool 파라미터 `IsJump`가 존재합니다(컨트롤러 내 조건 이벤트로 확인됨).
+- 입력 시스템(`Assets/Projects/Inputs/InputMappingContext.inputactions`)에 `Jump` 액션이 아직 없습니다.
+- 플레이어 프리팹 `D:\Devs\us2d_client\Assets\Projects\Prefabs\PF_Player.prefab`에는 `BoxCollider2D`(Trigger)가 있으며, 현재 코드 기준으로는 점프/그라운드 체크용 별도 트랜스폼이 없습니다.
+
+## 2) 설계(접근 방식)
+
+### 2.1. 상태머신 확장
+- `PlayerStateType`에 `JUMP`를 추가합니다(기존 값 유지 + 신규 값만 추가).
+- `PlayerStateMachine.Init()`에서 `PlayerJumpState`를 등록합니다.
+- `PlayerIdleState`/`PlayerMoveState`의 `Evaluate()`에 점프 전이 조건을 추가합니다.
+
+### 2.2. 입력(점프 트리거) 전략
+- `InputMappingContext.inputactions`에 `Jump` 액션을 추가하고 기본 바인딩을 제공합니다.
+  - Keyboard: `Space`
+  - Gamepad: `buttonSouth(A)`
+- `InputMappingContext.cs`(자동 생성)는 수정하지 않는 방향으로 갑니다.
+  - `PlayerController`가 런타임에 `InputManager.InputMappingContext.asset.FindAction("Player/Jump", true)`로 액션을 찾아 이벤트를 구독합니다.
+
+### 2.3. 그라운드 체크는 PlayerController에서 제공
+- `PlayerController`가 매 프레임(또는 Update 주기) `Physics2D.OverlapCircle`로 `IsGrounded`를 갱신합니다.
+- 점프 상태는 `PlayerController.IsGrounded`를 참조해 착지 여부를 판단합니다.
+
+### 2.4. 점프 물리(상용 최소 구현)
+- Rigidbody2D를 강제하지 않고, 기존 스테이트들과 동일하게 **transform 기반(키네마틱) 이동**으로 구현합니다.
+- 수직 속도(`verticalVelocity`)와 중력(`gravity`)을 통해 `y`축 이동을 적분합니다.
+- 착지 시 `y`를 “점프 시작 시점의 지면 높이(캐시)”로 스냅하여 잔진동/부유를 줄입니다.
+
+## 3) 클래스/레이어 구조(요약)
+
+### 3.1. 클래스 다이어그램(요약)
+```mermaid
+classDiagram
+    class PlayerController {
+      -PlayerInputSnapshot inputSnapshot
+      -bool isGrounded
+      -float groundedY
+      +bool IsGrounded
+      +float GroundedY
+      +Update()
+    }
+    class Player {
+      +PlayerStateMachine StateMachine
+    }
+    class PlayerStateMachine {
+      +PlayerState CurrentState
+      +ChangeState(type)
+      +Update(input)
+    }
+    class PlayerState {
+      +Enter()
+      +Exit()
+      +Update(input)
+      +Evaluate(input)
+    }
+    class PlayerJumpState {
+      -float verticalVelocity
+      -float jumpStartY
+      +Enter()
+      +Update(input)
+      +Evaluate(input)
+    }
+    PlayerController --> Player : updates grounded/input
+    Player --> PlayerStateMachine : owns
+    PlayerStateMachine --> PlayerState : CurrentState
+    PlayerJumpState --|> PlayerState
+```
+
+### 3.2. 로직 흐름(점프)
+```mermaid
+flowchart TD
+  I[입력: Jump 1프레임 트리거] --> C[PlayerController: inputSnapshot.jumpPressed=true]
+  C --> G[PlayerController: OverlapCircle2D로 IsGrounded 갱신]
+  G --> S0[Idle/Move Evaluate: jumpPressed && IsGrounded면 JUMP 전이]
+  S0 --> E[Jump Enter: verticalVelocity=JumpVelocity, jumpStartY=GroundedY]
+  E --> U[Jump Update: horizontal move + gravity 적분 + y 이동]
+  U --> L{IsGrounded && verticalVelocity<=0 ?}
+  L -- Yes --> Snap[y를 jumpStartY로 스냅]
+  Snap --> S1[Idle/Move로 복귀]
+  L -- No --> U
+```
+
+## 4) 수정/생성 파일 (경로)
+### 4.1. 코드(수정)
+- `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Creature\States\PlayerState.cs`
+- `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Creature\States\PlayerStateMachine.cs`
+- `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Creature\States\PlayerIdleState.cs`
+- `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Creature\States\PlayerMoveState.cs`
+- `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Creature\States\PlayerJumpState.cs`
+- `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\PlayerController.cs`
+- `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\PlayerView.cs`
+- `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\PlayerData.cs`
+- `D:\Devs\us2d_client\Assets\Projects\Inputs\InputMappingContext.inputactions`
+
+### 4.2. 다이어그램(저장 위치)
+- `C:\Users\morex\OneDrive\Documents\Obsidian Vault\diagram\[2026-04-24 09-22] us2d_client Player Jump State 다이어그램.md`
+
+## 5) 단계별 구현 순서
+1. `PlayerStateType`에 `JUMP` 추가 + `PlayerStateMachine`에 JumpState 등록
+2. `PlayerInputSnapshot`에 `jumpPressed` 추가 + `PlayerController`에 Jump 액션 구독/해제 추가
+3. `PlayerController`에 GroundCheck(OverlapCircle2D) 구현 + Gizmo 표시
+4. `PlayerData`에 점프 파라미터 추가(기본값 포함)
+5. `PlayerJumpState` 구현(Enter/Update/Evaluate) + Idle/Move 전이 조건 추가
+6. `PlayerView`가 Animator `IsJump`를 세팅하도록 연동
+
+## 6) 구현 코드(적용 예정 패치; 승인 후 실제 반영)
+
+### 6.1. `PlayerState.cs` (JUMP 추가)
+대상: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Creature\States\PlayerState.cs`
+```diff
+ public enum PlayerStateType
+ {
+     NONE = 0,
+     IDLE = 1,
+     MOVE = 2,
+     ROLL = 3,
+     DEAD = 4
++    ,JUMP = 5
+ }
+```
+
+### 6.2. `PlayerStateMachine.cs` (JumpState 등록)
+대상: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Creature\States\PlayerStateMachine.cs`
+```diff
+ private void Init(Player player)
+ {
+     states.Add(PlayerStateType.IDLE, new PlayerIdleState(player));
+     states.Add(PlayerStateType.MOVE, new PlayerMoveState(player));
+     states.Add(PlayerStateType.ROLL, new PlayerRollState(player));
++    states.Add(PlayerStateType.JUMP, new PlayerJumpState(player));
+     states.Add(PlayerStateType.DEAD, new PlayerDeadState(player));
+ }
+```
+
+### 6.3. `PlayerController.cs` (Jump 입력 + GroundCheck)
+대상: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\PlayerController.cs`
+
+#### (1) 스냅샷 필드 추가
+```diff
+ public struct PlayerInputSnapshot
+ {
+     // Trigger
+     public bool firePressed;
+     public bool rollPressed;
+     public bool reloadPressed;
++    public bool jumpPressed;
+ }
+```
+
+#### (2) GroundCheck 필드/프로퍼티 추가 + Update에서 갱신
+```diff
+ public partial class PlayerController : MonoBehaviour, InputMappingContext.IPlayerActions
+ {
++    [Header("Ground Check")]
++    [SerializeField] private Transform groundCheck = null;
++    [SerializeField] private float groundCheckRadius = 0.08f;
++    [SerializeField] private LayerMask groundLayerMask = ~0;
++
++    public bool IsGrounded { get; private set; } = true;
++    public float GroundedY { get; private set; } = 0f;
++    private InputAction jumpAction = null;
+ 
+     private void Update()
+     {
++        UpdateGrounded();
+         player.StateMachine.Update(inputSnapshot.Consume());
+     }
++
++    private void UpdateGrounded()
++    {
++        Vector2 checkPos = groundCheck != null
++            ? (Vector2)groundCheck.position
++            : (Vector2)transform.position + Vector2.down * 0.25f;
++
++        Collider2D hit = Physics2D.OverlapCircle(checkPos, groundCheckRadius, groundLayerMask);
++        IsGrounded = hit != null;
++        if (IsGrounded) GroundedY = transform.position.y;
++    }
+ }
+```
+
+#### (3) 점프 액션 구독(자동 생성 코드 수정 없이 FindAction 사용)
+```diff
+ private void OnEnable()
+ {
+     InputManager.InputMappingContext.Player.Move.performed += OnMove;
+     InputManager.InputMappingContext.Player.Move.canceled += OnMove;
+     InputManager.InputMappingContext.Player.Look.performed += OnLook;
+     InputManager.InputMappingContext.Player.Look.canceled += OnLook;
+     InputManager.InputMappingContext.Player.Fire.performed += OnFire;
+     InputManager.InputMappingContext.Player.Roll.performed += OnRoll;
+     InputManager.InputMappingContext.Player.Reload.performed += OnReload;
++
++    jumpAction = InputManager.InputMappingContext.asset.FindAction("Player/Jump", true);
++    if (jumpAction != null) jumpAction.performed += OnJump;
+ }
+ 
+ private void OnDisable()
+ {
+     InputManager.InputMappingContext.Player.Move.performed -= OnMove;
+     InputManager.InputMappingContext.Player.Move.canceled -= OnMove;
+     InputManager.InputMappingContext.Player.Look.performed -= OnLook;
+     InputManager.InputMappingContext.Player.Look.canceled -= OnLook;
+     InputManager.InputMappingContext.Player.Fire.performed -= OnFire;
+     InputManager.InputMappingContext.Player.Roll.performed -= OnRoll;
+     InputManager.InputMappingContext.Player.Reload.performed -= OnReload;
++
++    if (jumpAction != null) jumpAction.performed -= OnJump;
++    jumpAction = null;
+ }
+```
+
+#### (4) 점프 트리거 처리 메서드 추가
+```diff
+ public partial class PlayerController
+ {
++    public event Action OnJumpTriggered;
++
++    public void OnJump(InputAction.CallbackContext context)
++    {
++        inputSnapshot.jumpPressed = true;
++        OnJumpTriggered?.Invoke();
++    }
+ }
+```
+
+#### (5) Gizmo 표시(선택)
+```diff
+ private void OnDrawGizmos()
+ {
+     Gizmos.color = Color.green;
+     Gizmos.DrawLine(player.transform.position, player.transform.position + player.MoveDirection);
++
++    Gizmos.color = IsGrounded ? Color.cyan : Color.red;
++    Vector3 pos = groundCheck != null ? groundCheck.position : transform.position + Vector3.down * 0.25f;
++    Gizmos.DrawWireSphere(pos, groundCheckRadius);
+ }
+```
+
+### 6.4. `InputMappingContext.inputactions` (Jump 액션 추가)
+대상: `D:\Devs\us2d_client\Assets\Projects\Inputs\InputMappingContext.inputactions`
+
+핵심 변경:
+- Player action map의 `actions`에 Jump 추가
+- Player map의 `bindings`에 Space/Gamepad-A 바인딩 추가
+
+예시(개념; 실제 적용 시 JSON 내 id는 새로 생성):
+```diff
+   "actions": [
++    { "name": "Jump", "type": "Button", "id": "<new-guid>", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
+     ...
+   ],
+   "bindings": [
++    { "name": "", "id": "<new-guid>", "path": "<Keyboard>/space", "interactions": "", "processors": "", "groups": "Keyboard&Mouse", "action": "Jump", "isComposite": false, "isPartOfComposite": false },
++    { "name": "", "id": "<new-guid>", "path": "<Gamepad>/buttonSouth", "interactions": "", "processors": "", "groups": "Gamepad", "action": "Jump", "isComposite": false, "isPartOfComposite": false },
+     ...
+   ]
+```
+
+### 6.5. `PlayerData.cs` (점프 파라미터 추가)
+대상: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\PlayerData.cs`
+```diff
+ public class PlayerData : CreatureData
+ {
+     [field: SerializeField] public float RollSpCost { get; set; } = 25f;
+     [field: SerializeField] public float SpeedAccelAtRollMultiplier { get; set; } = 3f;
+     [field: SerializeField] public float SpeedDecelAtRollMultiplier { get; set; } = 0.3f;
++
++    [field: Header("Jump")]
++    [field: SerializeField] public float JumpVelocity { get; set; } = 6.5f;
++    [field: SerializeField] public float JumpGravity { get; set; } = -18f;
++    [field: SerializeField] public float AirControlMultiplier { get; set; } = 0.85f;
+ }
+```
+
+### 6.6. `PlayerIdleState.cs` / `PlayerMoveState.cs` (Jump 전이)
+대상:
+- `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Creature\States\PlayerIdleState.cs`
+- `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Creature\States\PlayerMoveState.cs`
+
+```diff
+ public override void Evaluate(PlayerInputSnapshot inputSnapshot)
+ {
+     if (Player.CurrentHp <= 0f) { ... }
++
++    PlayerController controller = Utls.FindComponent<PlayerController>(Player.gameObject);
++    if (inputSnapshot.jumpPressed && controller != null && controller.IsGrounded)
++    {
++        Player.StateMachine.ChangeState(PlayerStateType.JUMP);
++        return;
++    }
+ 
+     if (inputSnapshot.rollPressed) { ... }
+     ...
+ }
+```
+
+### 6.7. `PlayerJumpState.cs` (본체 구현)
+대상: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\Creature\States\PlayerJumpState.cs`
+
+```diff
+ using UnityEngine;
+ 
+ public class PlayerJumpState : PlayerState
+ {
+     private PlayerController controller;
+     private float verticalVelocity;
+     private float jumpStartY;
+ 
+     public PlayerJumpState(Player player) : base(player, PlayerStateType.JUMP)
+     {
+         controller = Utls.FindComponent<PlayerController>(player.gameObject);
+     }
+ 
+     public override void Enter()
+     {
+         if (controller != null)
+             jumpStartY = controller.GroundedY;
+         else
+             jumpStartY = Player.transform.position.y;
+ 
+         verticalVelocity = Player.Data.JumpVelocity;
+     }
+ 
+     public override void Update(PlayerInputSnapshot inputSnapshot)
+     {
+         SetMoveDirection(inputSnapshot);
+         SetLookDirection(inputSnapshot);
+ 
+         MoveHorizontal(inputSnapshot);
+         ApplyGravityAndMoveVertical();
+     }
+ 
+     private void SetMoveDirection(PlayerInputSnapshot inputSnapshot)
+     {
+         if (inputSnapshot.move.IsNearlyZero()) return;
+ 
+         Vector3 input = inputSnapshot.move.normalized;
+         Player.MoveDirection = new Vector3(input.x, 0, input.y);
+     }
+ 
+     private void SetLookDirection(PlayerInputSnapshot inputSnapshot)
+     {
+         if (inputSnapshot.look.IsNearlyZero()) return;
+ 
+         Player.LookDirection = (Utls.GetMouseWorldPosition() - Player.transform.position).normalized;
+     }
+ 
+     private void MoveHorizontal(PlayerInputSnapshot inputSnapshot)
+     {
+         Vector3 frameVelocity = new Vector3
+         (
+             Player.MoveDirection.x * Player.Data.MaxSpeed.x,
+             0,
+             Player.MoveDirection.z * Player.Data.MaxSpeed.z
+         );
+ 
+         float airControl = Player.Data.AirControlMultiplier;
+         Player.transform.position += frameVelocity * airControl * Time.deltaTime;
+     }
+ 
+     private void ApplyGravityAndMoveVertical()
+     {
+         verticalVelocity += Player.Data.JumpGravity * Time.deltaTime;
+         Vector3 pos = Player.transform.position;
+         pos.y += verticalVelocity * Time.deltaTime;
+         Player.transform.position = pos;
+     }
+ 
+     public override void Evaluate(PlayerInputSnapshot inputSnapshot)
+     {
+         if (Player.CurrentHp <= 0f)
+         {
+             Player.StateMachine.ChangeState(PlayerStateType.DEAD);
+             return;
+         }
+ 
+         bool isGrounded = controller != null && controller.IsGrounded;
+         if (isGrounded && verticalVelocity <= 0f)
+         {
+             Vector3 pos = Player.transform.position;
+             pos.y = jumpStartY;
+             Player.transform.position = pos;
+ 
+             Player.StateMachine.ChangeState(inputSnapshot.move.IsNearlyZero() ? PlayerStateType.IDLE : PlayerStateType.MOVE);
+             return;
+         }
+     }
+ 
+     public override bool CanTransitTo(PlayerStateType nextStateType)
+     {
+         // 공중에서 구르기 같은 의도치 않은 상태 전이 방지(필요 시 정책 변경)
+         if (nextStateType == PlayerStateType.ROLL) return false;
+         return true;
+     }
+ }
+```
+
+### 6.8. `PlayerView.cs` (IsJump 연동)
+대상: `D:\Devs\us2d_client\Assets\Projects\Scripts\Gameplay\PlayerView.cs`
+```diff
+ public void UpdateAnimationParameters()
+ {
+     animator.SetBool(UnityConstant.Animator.Parameters.AC_Player.Bool.IsIdle,  ... );
+     animator.SetBool(UnityConstant.Animator.Parameters.AC_Player.Bool.IsMoving, ... );
+     animator.SetBool(UnityConstant.Animator.Parameters.AC_Player.Bool.IsRoll,  ... );
++
++    // UnityConstant 쪽에 IsJump 상수가 없을 가능성을 고려해 문자열을 사용(필요 시 상수로 교체)
++    animator.SetBool("IsJump", player.StateMachine.CurrentState.StateType == PlayerStateType.JUMP);
+ }
+```
+
+## 7) 테스트(수동) 시나리오
+- (1) Idle에서 Space → 점프 애니( IsJump=true )로 전이, 착지 후 Idle 복귀
+- (2) Move 중 Space → 점프 중에도 수평 이동 가능(air control), 착지 후 Move 복귀
+- (3) 공중에서 Space 연타 → 2중 점프가 발생하지 않음(grounded 조건)
+- (4) 공중에서 Roll 입력 → 정책대로 무시되거나(현재 설계: 무시) 에러 없이 동작
+- (5) GroundCheck radius/레이어 세팅이 잘못되었을 때도 NullRef 없이 안정적으로 동작
+
+## 8) 리스크/롤백
+- 입력 에셋(`.inputactions`) 변경은 Unity에서 리임포트 시 자동 코드 생성/바인딩 재정렬이 발생할 수 있음 → 이번 설계는 **자동 생성 C# 수정 없이** 런타임 FindAction을 사용해 영향 최소화.
+- 롤백은 아래 파일들을 원복하면 됨:
+  - `PlayerState.cs`, `PlayerStateMachine.cs`, `PlayerIdleState.cs`, `PlayerMoveState.cs`, `PlayerJumpState.cs`, `PlayerController.cs`, `PlayerView.cs`, `PlayerData.cs`, `InputMappingContext.inputactions`
+
+---
+
+## 9) 승인 체크박스
+- [ ] Update: SDP 내용/가정/다이어그램 수정 요청
+- [ ] Modify: 위 수정안(코드 + inputactions) 실제 반영 승인
 - [ ] Test: 유니티 플레이모드(수동) 테스트까지 진행 승인

@@ -16,18 +16,21 @@ public class PlayerMoveState : PlayerState
     {
         if (inputSnapshot.move.IsNearlyZero()) return;
 
-        Player.MoveDirection = inputSnapshot.move.normalized;
+        Vector3 input = inputSnapshot.move.normalized;
+
+        Player.MoveDirection = new Vector3(input.x, 0, input.y);
     }
 
     private void Move()
     {
-        Vector2 frameVelocity = new Vector2
+        Vector3 frameVelocity = new Vector3
         (
             Player.MoveDirection.x * Player.Data.MaxSpeed.x,
-            Player.MoveDirection.y * Player.Data.MaxSpeed.y
+            0,
+            Player.MoveDirection.z * Player.Data.MaxSpeed.z
         );
 
-        Player.transform.position += (Vector3)frameVelocity * Time.deltaTime;
+        Player.transform.position += frameVelocity * Time.deltaTime;
     }
 
     private void SetLookDirection(PlayerInputSnapshot inputSnapshot)
