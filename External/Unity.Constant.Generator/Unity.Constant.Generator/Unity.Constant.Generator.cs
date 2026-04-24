@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Newtonsoft.Json.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
@@ -27,6 +26,14 @@ namespace UnityConstantsGenerator
             messageFormat: "UnityConstant 입력 파일을 읽는 중 오류가 발생했습니다: {0}",
             category: "UnityConstantGenerator",
             defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        private static readonly DiagnosticDescriptor GeneratorFailedDescriptor = new DiagnosticDescriptor(
+            id: "UCG0001",
+            title: "UnityConstant generation failed",
+            messageFormat: "UnityConstant 생성 실패: {0}",
+            category: "UnityConstantGenerator",
+            defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
         private static readonly HashSet<string> ReservedKeywords = new HashSet<string>(StringComparer.Ordinal)
@@ -86,7 +93,16 @@ namespace UnityConstantsGenerator
             }
             catch (Exception ex)
             {
-                context.AddSource("UnityConstant_Generator_Error.g.cs", $"/* error: {ex.Message} */");
+                context.ReportDiagnostic(Diagnostic.Create(
+                    GeneratorFailedDescriptor,
+                    Location.None,
+                    ex.ToString()));
+
+                context.AddSource(
+                    "UnityConstant_Generator_Error.g.cs",
+                    SourceText.From(
+                        $"/* error: {EscapeComment(ex.ToString())} */",
+                        Encoding.UTF8));
             }
         }
 
@@ -133,9 +149,8 @@ namespace UnityConstantsGenerator
                 return new SortedDictionary<string, string>(StringComparer.Ordinal);
             }
 
-            JObject jsonObject = JObject.Parse(jsonText);
             var constants = new SortedDictionary<string, string>(StringComparer.Ordinal);
-            ParseJToken(jsonObject, string.Empty, constants);
+            ParseJsonText(jsonText, constants);
             return constants;
         }
 
@@ -508,31 +523,40 @@ namespace UnityConstantsGenerator
             sb.AppendLine("    }");
         }
 
-        private static void ParseJToken(
-            JToken token,
+        private static void ParseJsonText(
+            string jsonText,
+            IDictionary<string, string> dict)
+        {
+            var parser = new JsonParser(jsonText);
+            JsonValue root = parser.ParseValue();
+            parser.EnsureFullyConsumed();
+            FlattenJsonValue(root, string.Empty, dict);
+        }
+
+        private static void FlattenJsonValue(
+            JsonValue value,
             string prefix,
             IDictionary<string, string> dict)
         {
-            switch (token.Type)
+            switch (value.Kind)
             {
-                case JTokenType.Object:
-                    foreach (JProperty prop in token.Children<JProperty>())
+                case JsonValueKind.Object:
+                    foreach (KeyValuePair<string, JsonValue> prop in value.ObjectItems)
                     {
-                        string propertyName = SanitizeIdentifier(prop.Name);
+                        string propertyName = SanitizeIdentifier(prop.Key);
                         string newPrefix = string.IsNullOrEmpty(prefix)
                             ? propertyName
                             : $"{prefix}_{propertyName}";
 
-                        ParseJToken(prop.Value, newPrefix, dict);
+                        FlattenJsonValue(prop.Value, newPrefix, dict);
                     }
 
                     break;
 
-                case JTokenType.Array:
-                    int index = 0;
-                    foreach (JToken item in token.Children())
+                case JsonValueKind.Array:
+                    for (int index = 0; index < value.ArrayItems.Count; index++)
                     {
-                        ParseJToken(item, $"{prefix}_{index++}", dict);
+                        FlattenJsonValue(value.ArrayItems[index], $"{prefix}_{index}", dict);
                     }
 
                     break;
@@ -540,7 +564,7 @@ namespace UnityConstantsGenerator
                 default:
                     if (!string.IsNullOrWhiteSpace(prefix))
                     {
-                        dict[prefix] = token.ToString();
+                        dict[prefix] = value.PrimitiveValue ?? string.Empty;
                     }
 
                     break;
@@ -716,6 +740,16 @@ namespace UnityConstantsGenerator
                 .Replace("\"", "\\\"");
         }
 
+        private static string EscapeComment(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return string.Empty;
+            }
+
+            return value.Replace("*/", "* /");
+        }
+
         private static string SanitizeIdentifier(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -846,6 +880,338 @@ namespace UnityConstantsGenerator
             public string Name { get; }
 
             public int Index { get; }
+        }
+
+        private enum JsonValueKind
+        {
+            Object,
+            Array,
+            String,
+            Number,
+            Boolean,
+            Null,
+        }
+
+        private sealed class JsonValue
+        {
+            public JsonValue(IReadOnlyDictionary<string, JsonValue> objectItems)
+            {
+                Kind = JsonValueKind.Object;
+                ObjectItems = objectItems;
+                ArrayItems = Array.Empty<JsonValue>();
+                PrimitiveValue = null;
+            }
+
+            public JsonValue(IReadOnlyList<JsonValue> arrayItems)
+            {
+                Kind = JsonValueKind.Array;
+                ObjectItems = new Dictionary<string, JsonValue>(StringComparer.Ordinal);
+                ArrayItems = arrayItems;
+                PrimitiveValue = null;
+            }
+
+            public JsonValue(JsonValueKind kind, string primitiveValue)
+            {
+                Kind = kind;
+                ObjectItems = new Dictionary<string, JsonValue>(StringComparer.Ordinal);
+                ArrayItems = Array.Empty<JsonValue>();
+                PrimitiveValue = primitiveValue;
+            }
+
+            public JsonValueKind Kind { get; }
+
+            public IReadOnlyDictionary<string, JsonValue> ObjectItems { get; }
+
+            public IReadOnlyList<JsonValue> ArrayItems { get; }
+
+            public string PrimitiveValue { get; }
+        }
+
+        private sealed class JsonParser
+        {
+            private readonly string text;
+            private int index;
+
+            public JsonParser(string text)
+            {
+                this.text = text ?? string.Empty;
+            }
+
+            public JsonValue ParseValue()
+            {
+                SkipWhitespace();
+
+                if (index >= text.Length)
+                {
+                    throw new FormatException("JSON 입력이 비어 있습니다.");
+                }
+
+                char ch = text[index];
+                switch (ch)
+                {
+                    case '{':
+                        return ParseObject();
+
+                    case '[':
+                        return ParseArray();
+
+                    case '"':
+                        return new JsonValue(JsonValueKind.String, ParseString());
+
+                    case 't':
+                        ConsumeLiteral("true");
+                        return new JsonValue(JsonValueKind.Boolean, "true");
+
+                    case 'f':
+                        ConsumeLiteral("false");
+                        return new JsonValue(JsonValueKind.Boolean, "false");
+
+                    case 'n':
+                        ConsumeLiteral("null");
+                        return new JsonValue(JsonValueKind.Null, "null");
+
+                    default:
+                        if (ch == '-' || char.IsDigit(ch))
+                        {
+                            return new JsonValue(JsonValueKind.Number, ParseNumber());
+                        }
+
+                        throw new FormatException($"지원되지 않는 JSON 토큰입니다. index={index}, char='{ch}'");
+                }
+            }
+
+            public void EnsureFullyConsumed()
+            {
+                SkipWhitespace();
+                if (index != text.Length)
+                {
+                    throw new FormatException($"JSON 파싱 후 남은 문자가 있습니다. index={index}");
+                }
+            }
+
+            private JsonValue ParseObject()
+            {
+                Consume('{');
+                SkipWhitespace();
+
+                var items = new Dictionary<string, JsonValue>(StringComparer.Ordinal);
+                if (TryConsume('}'))
+                {
+                    return new JsonValue(items);
+                }
+
+                while (true)
+                {
+                    SkipWhitespace();
+                    string key = ParseString();
+                    SkipWhitespace();
+                    Consume(':');
+
+                    JsonValue value = ParseValue();
+                    items[key] = value;
+
+                    SkipWhitespace();
+                    if (TryConsume('}'))
+                    {
+                        break;
+                    }
+
+                    Consume(',');
+                }
+
+                return new JsonValue(items);
+            }
+
+            private JsonValue ParseArray()
+            {
+                Consume('[');
+                SkipWhitespace();
+
+                var items = new List<JsonValue>();
+                if (TryConsume(']'))
+                {
+                    return new JsonValue(items);
+                }
+
+                while (true)
+                {
+                    items.Add(ParseValue());
+                    SkipWhitespace();
+
+                    if (TryConsume(']'))
+                    {
+                        break;
+                    }
+
+                    Consume(',');
+                }
+
+                return new JsonValue(items);
+            }
+
+            private string ParseString()
+            {
+                Consume('"');
+
+                var sb = new StringBuilder();
+                while (index < text.Length)
+                {
+                    char ch = text[index++];
+                    if (ch == '"')
+                    {
+                        return sb.ToString();
+                    }
+
+                    if (ch != '\\')
+                    {
+                        sb.Append(ch);
+                        continue;
+                    }
+
+                    if (index >= text.Length)
+                    {
+                        throw new FormatException("문자열 이스케이프가 비정상적으로 종료되었습니다.");
+                    }
+
+                    char escaped = text[index++];
+                    switch (escaped)
+                    {
+                        case '"':
+                        case '\\':
+                        case '/':
+                            sb.Append(escaped);
+                            break;
+                        case 'b':
+                            sb.Append('\b');
+                            break;
+                        case 'f':
+                            sb.Append('\f');
+                            break;
+                        case 'n':
+                            sb.Append('\n');
+                            break;
+                        case 'r':
+                            sb.Append('\r');
+                            break;
+                        case 't':
+                            sb.Append('\t');
+                            break;
+                        case 'u':
+                            sb.Append(ParseUnicodeEscape());
+                            break;
+                        default:
+                            throw new FormatException($"지원되지 않는 문자열 이스케이프입니다: \\{escaped}");
+                    }
+                }
+
+                throw new FormatException("문자열이 닫히지 않았습니다.");
+            }
+
+            private char ParseUnicodeEscape()
+            {
+                if (index + 4 > text.Length)
+                {
+                    throw new FormatException("유니코드 이스케이프 길이가 부족합니다.");
+                }
+
+                string hex = text.Substring(index, 4);
+                index += 4;
+
+                ushort codePoint;
+                if (!ushort.TryParse(hex, System.Globalization.NumberStyles.HexNumber, null, out codePoint))
+                {
+                    throw new FormatException($"잘못된 유니코드 이스케이프입니다: \\u{hex}");
+                }
+
+                return (char)codePoint;
+            }
+
+            private string ParseNumber()
+            {
+                int start = index;
+
+                if (text[index] == '-')
+                {
+                    index++;
+                }
+
+                ConsumeDigits();
+
+                if (index < text.Length && text[index] == '.')
+                {
+                    index++;
+                    ConsumeDigits();
+                }
+
+                if (index < text.Length && (text[index] == 'e' || text[index] == 'E'))
+                {
+                    index++;
+                    if (index < text.Length && (text[index] == '+' || text[index] == '-'))
+                    {
+                        index++;
+                    }
+
+                    ConsumeDigits();
+                }
+
+                return text.Substring(start, index - start);
+            }
+
+            private void ConsumeDigits()
+            {
+                int start = index;
+                while (index < text.Length && char.IsDigit(text[index]))
+                {
+                    index++;
+                }
+
+                if (start == index)
+                {
+                    throw new FormatException($"숫자 파싱 중 숫자가 필요합니다. index={index}");
+                }
+            }
+
+            private void ConsumeLiteral(string literal)
+            {
+                if (index + literal.Length > text.Length ||
+                    !string.Equals(text.Substring(index, literal.Length), literal, StringComparison.Ordinal))
+                {
+                    throw new FormatException($"리터럴 '{literal}' 파싱 실패. index={index}");
+                }
+
+                index += literal.Length;
+            }
+
+            private void Consume(char expected)
+            {
+                SkipWhitespace();
+                if (index >= text.Length || text[index] != expected)
+                {
+                    throw new FormatException($"'{expected}' 문자가 필요합니다. index={index}");
+                }
+
+                index++;
+            }
+
+            private bool TryConsume(char expected)
+            {
+                SkipWhitespace();
+                if (index < text.Length && text[index] == expected)
+                {
+                    index++;
+                    return true;
+                }
+
+                return false;
+            }
+
+            private void SkipWhitespace()
+            {
+                while (index < text.Length && char.IsWhiteSpace(text[index]))
+                {
+                    index++;
+                }
+            }
         }
     }
 }

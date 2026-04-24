@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Devs\\us2d_client\\External\\Unity.Constant.Generator\\Unity.Constant.Generator\\Unity.Constant.Generator.csproj": {}
+    "D:\\Devs\\da_client\\External\\Unity.Constant.Generator\\Unity.Constant.Generator\\Unity.Constant.Generator.csproj": {}
   },
   "projects": {
-    "D:\\Devs\\us2d_client\\External\\Unity.Constant.Generator\\Unity.Constant.Generator\\Unity.Constant.Generator.csproj": {
+    "D:\\Devs\\da_client\\External\\Unity.Constant.Generator\\Unity.Constant.Generator\\Unity.Constant.Generator.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Devs\\us2d_client\\External\\Unity.Constant.Generator\\Unity.Constant.Generator\\Unity.Constant.Generator.csproj",
+        "projectUniqueName": "D:\\Devs\\da_client\\External\\Unity.Constant.Generator\\Unity.Constant.Generator\\Unity.Constant.Generator.csproj",
         "projectName": "Unity.Constant.Generator",
-        "projectPath": "D:\\Devs\\us2d_client\\External\\Unity.Constant.Generator\\Unity.Constant.Generator\\Unity.Constant.Generator.csproj",
+        "projectPath": "D:\\Devs\\da_client\\External\\Unity.Constant.Generator\\Unity.Constant.Generator\\Unity.Constant.Generator.csproj",
         "packagesPath": "C:\\Users\\morex\\.nuget\\packages\\",
-        "outputPath": "D:\\Devs\\us2d_client\\External\\Unity.Constant.Generator\\Unity.Constant.Generator\\obj\\",
+        "outputPath": "D:\\Devs\\da_client\\External\\Unity.Constant.Generator\\Unity.Constant.Generator\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\morex\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -61,12 +61,6 @@
               "target": "Package",
               "version": "[2.0.3, )",
               "autoReferenced": true
-            },
-            "Newtonsoft.Json": {
-              "suppressParent": "All",
-              "target": "Package",
-              "version": "[13.0.1, )",
-              "generatePathProperty": true
             }
           },
           "imports": [
