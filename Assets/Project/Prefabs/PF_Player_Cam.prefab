@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4917670475815449482}
-  - component: {fileID: 5373061434462428864}
+  - component: {fileID: 5041193069578089979}
   - component: {fileID: 1252456661001229495}
-  - component: {fileID: 5352089575356902218}
+  - component: {fileID: 2903569335974053682}
   - component: {fileID: 2608049079124092812}
   m_Layer: 0
   m_Name: PF_Player_Cam
@@ -28,14 +28,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8111652387426546131}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.19509031, y: 0, z: 0, w: 0.98078537}
-  m_LocalPosition: {x: 0, y: 4, z: -8}
+  m_LocalRotation: {x: 0.18438016, y: 0, z: 0, w: 0.982855}
+  m_LocalPosition: {x: 0, y: 5.25, z: -12}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 22.5, y: 0, z: 0}
---- !u!20 &5373061434462428864
+  m_LocalEulerAnglesHint: {x: 21.25, y: 0, z: 0}
+--- !u!20 &5041193069578089979
 Camera:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -45,7 +45,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.16981131, g: 0.16981131, b: 0.16981131, a: 0}
+  m_BackGroundColor: {r: 0.23018861, g: 0.23018861, b: 0.23018861, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -66,12 +66,12 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
-  far clip plane: 1000
-  field of view: 60
+  near clip plane: 0.1
+  far clip plane: 5000
+  field of view: 62
   orthographic: 0
-  orthographic size: 5
-  m_Depth: -1
+  orthographic size: 16.875
+  m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -94,7 +94,7 @@ AudioListener:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8111652387426546131}
   m_Enabled: 1
---- !u!114 &5352089575356902218
+--- !u!114 &2903569335974053682
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -111,13 +111,13 @@ MonoBehaviour:
   m_RequiresOpaqueTextureOption: 2
   m_CameraType: 0
   m_Cameras: []
-  m_RendererIndex: -1
+  m_RendererIndex: 0
   m_VolumeLayerMask:
     serializedVersion: 2
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
-  m_RenderPostProcessing: 0
+  m_RenderPostProcessing: 1
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
   m_StopNaN: 0
@@ -151,5 +151,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerCamera
   followSpeed: 10
-  positionOffset: {x: 0, y: 4, z: -8}
-  rotationOffset: {x: 22.5, y: 0, z: 0}
+  positionOffset: {x: 0, y: 10, z: -13.5}
+  rotationOffset: {x: 40, y: 0, z: 0}
+  target: {fileID: 0}

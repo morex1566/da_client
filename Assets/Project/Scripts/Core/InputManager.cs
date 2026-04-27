@@ -1,6 +1,31 @@
 using UnityEngine;
 using US2D.Network;
 
+
+public struct InputSnapshot
+{
+    // Delta
+    public Vector2 move;
+    public Vector2 look;
+
+    // Trigger
+    public bool attackPressed;
+    public bool rollPressed;
+    public bool reloadPressed;
+
+    public bool IsEmpty => Equals(default(InputSnapshot));
+
+    public InputSnapshot Consume()
+    {
+        InputSnapshot value = this;
+        this = default;
+        move = value.move;
+        look = value.look;
+
+        return value;
+    }
+}
+
 public class InputManager : MonoBehaviourSingleton<InputManager>
 {
     public static InputMappingContext InputMappingContext;

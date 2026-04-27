@@ -8,11 +8,15 @@ public static class ScriptExecutionOrder
     [MenuItem("Tools/Script Execution Order/Apply")]
     private static void ApplyPlayerOrder()
     {
-        Set<Player>(1000);
-        Set<PlayerController>(1199);
-        Set<PlayerView>(1299);
+        Set<PlayerController>(1000);
+        Set<PlayerView>(1199);
 
-        Debug.Log("[ScriptExecutionOrder] Applied: PlayerController=1000, PlayerView=1999");
+        Set<RangeWeaponController>(2000);
+        Set<RangeWeaponView>(2199);
+        Set<MeleeWeaponController>(2000);
+        Set<MeleeWeaponView>(2199);
+
+        Debug.Log("[ScriptExecutionOrder] Applied: PlayerController=1000, PlayerView=1199");
     }
 
     private static void Set<T>(int order) where T : MonoBehaviour
@@ -45,4 +49,3 @@ public static class ScriptExecutionOrder
     }
 }
 #endif
-

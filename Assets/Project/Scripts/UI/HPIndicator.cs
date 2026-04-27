@@ -40,9 +40,9 @@ public class HPIndicator : MonoBehaviour
         playerController.OnColliderTriggered -= UpdateHpIndicator;
     }
 
-    private void UpdateHpIndicator(float currentHp, float maxHp)
+    private void UpdateHpIndicator(PlayerController playerController, InputSnapshot input)
     {
-        hpBar.value = currentHp / maxHp;
-        hpText.text = $"{currentHp} / {maxHp}";
+        hpBar.value = playerController.CurrentHp / playerController.Data.MaxHp;
+        hpText.text = $"{playerController.CurrentHp} / {playerController.Data.MaxHp}";
     }
 }
