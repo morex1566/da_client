@@ -4,9 +4,13 @@ public abstract class CreatureController : MonoBehaviour
 {
     [field: SerializeField] public CreatureData Data { get; set; } = null;
 
-    public Vector3 MoveDirection { get; set; } = Vector3.right;
+    public Vector3 CurrMoveDirection { get; set; } = Vector3.right;
 
-    public Vector3 LookDirection { get; set; } = Vector3.right;
+    public Vector3 PrevMoveDirection { get; set; } = Vector3.right;
+
+    public Vector3 CurrLookDirection { get; set; } = Vector3.right;
+
+    public Vector3 PrevLookDirection { get; set; } = Vector3.right;
 
     public float CurrentHp { get; set; } = 0f;
 

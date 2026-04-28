@@ -42,12 +42,12 @@ public class MeleeWeaponView : MonoBehaviour
 
     public void UpdateFlip()
     {
-        if (Mathf.Abs(playerController.LookDirection.x) < playerView.LookDeadZone)
+        if (Mathf.Abs(playerController.CurrLookDirection.x) < playerView.LookDeadZone)
         {
             return;
         }
 
-        spriter.flipX = playerController.LookDirection.x < 0f;
+        spriter.flipX = playerController.CurrLookDirection.x < 0f;
     }
 
     // 특정 상태에서는 랜더링 비활성화

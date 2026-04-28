@@ -57,7 +57,7 @@ public class StateMachine<TStateType> where TStateType : struct, Enum
 
         if (states.TryGetValue(nextType, out IState<TStateType> nextState) == false)
         {
-            Debug.LogError($"[StateMachine] State is not registered: {nextType}");
+            Debug.LogError($"[StateMachine] CurrState is not registered: {nextType}");
             return false; // 등록되지 않은 상태 요청은 무시
         }
 

@@ -32,20 +32,28 @@ public abstract class PlayerState : IState<PlayerStateType>
 
     protected virtual void SetMoveDirection(InputSnapshot inputSnapshot)
     {
-        if (inputSnapshot.move.IsNearlyZero())
+        Vector3 input = inputSnapshot.move.normalized;
+        Vector3 nextDirection = new Vector3(input.x, 0f, input.y);
+
+        if (inputSnapshot.move.IsNotNearlyZero())
         {
-            return; // 이동 입력이 없으면 현재 이동 방향 유지
+            Controller.PrevMoveDirection = Controller.CurrMoveDirection;
         }
 
-        Vector3 input = inputSnapshot.move.normalized;
-        Controller.MoveDirection = new Vector3(input.x, 0f, input.y);
+        Controller.CurrMoveDirection = nextDirection;
     }
 
     protected virtual void SetLookDirection(InputSnapshot inputSnapshot)
     {
         Vector3 lookDirection = Utls.GetMouseWorldPosition() - Controller.transform.position;
         lookDirection.z = 0f;
-        Controller.LookDirection = lookDirection.normalized;
+
+        if (inputSnapshot.look.IsNotNearlyZero())
+        {
+            Controller.PrevLookDirection = Controller.CurrLookDirection;
+        }
+
+        Controller.CurrLookDirection = lookDirection.normalized;
     }
 
     protected virtual void Move(InputSnapshot inputSnapshot)
@@ -55,7 +63,7 @@ public abstract class PlayerState : IState<PlayerStateType>
             return; // 이동 입력이 없으면 위치 이동 생략
         }
 
-        Vector3 frameVelocity = new Vector3(Controller.MoveDirection.x * Controller.Data.MaxSpeed.x, 0f, Controller.MoveDirection.z * Controller.Data.MaxSpeed.z);
+        Vector3 frameVelocity = new Vector3(Controller.CurrMoveDirection.x * Controller.Data.MaxSpeed.x, 0f, Controller.CurrMoveDirection.z * Controller.Data.MaxSpeed.z);
 
         Controller.transform.position += frameVelocity * Time.deltaTime;
     }

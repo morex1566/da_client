@@ -8,7 +8,7 @@ using US2D.Network.Logic;
 [DisallowMultipleComponent]
 public partial class PlayerController : CreatureController, InputMappingContext.IPlayerActions
 {
-    [SerializeField] private SpringArm springArm = new();
+    [SerializeField] private CreatureSpringArm springArm = new();
 
     [SerializeField] private StateMachine<PlayerStateType> stateMachine;
 
@@ -23,7 +23,7 @@ public partial class PlayerController : CreatureController, InputMappingContext.
 
     public new PlayerData Data => base.Data as PlayerData;
 
-    public SpringArm SpringArm => springArm;
+    public CreatureSpringArm SpringArm => springArm;
 
     public StateMachine<PlayerStateType> StateMachine => stateMachine;
 
@@ -54,7 +54,7 @@ public partial class PlayerController : CreatureController, InputMappingContext.
         base.OnValidate();
 
         Init();
-        springArm.Update(LookDirection);
+        springArm.Update(CurrLookDirection);
     }
 
     protected override void Init()
@@ -68,8 +68,6 @@ public partial class PlayerController : CreatureController, InputMappingContext.
             { PlayerStateType.ROLL, new PlayerRollState(this) },
             { PlayerStateType.DEAD, new PlayerDeadState(this) }
         };
-
-
         stateMachine = new StateMachine<PlayerStateType>(PlayerStateType.IDLE, states);
     }
 
@@ -113,18 +111,18 @@ public partial class PlayerController : CreatureController, InputMappingContext.
         InputSnapshot input = inputSnapshot.Consume();
 
         stateMachine.Update(input);
-        springArm.Update(LookDirection);
+        springArm.Update(CurrLookDirection);
     }
 
     private void OnDrawGizmos()
     {
         if (springArm == null || springArm.PivotTransform == null || springArm.SocketTransform == null)
         {
-            return; // 씬에서 SpringArm Transform이 연결되지 않았으면 보조선 생략
+            return; // 씬에서 CreatureSpringArm Transform이 연결되지 않았으면 보조선 생략
         }
 
         Gizmos.color = Color.green;
-        Gizmos.DrawLine(transform.position, transform.position + MoveDirection);
+        Gizmos.DrawLine(transform.position, transform.position + CurrMoveDirection);
 
         Gizmos.color = Color.red;
         Gizmos.DrawLine(springArm.PivotTransform.position, springArm.SocketTransform.position);

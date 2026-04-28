@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 [Serializable]
-public class SpringArm
+public partial class CreatureSpringArm
 {
     [SerializeField, Min(0f)] private float length = 2f;
 
@@ -20,23 +20,16 @@ public class SpringArm
 
 
 
+    // 마우스 방향 벡터의 각도까지 회전
     public void Update(Vector3 lookDirection)
     {
-        socketTransform.position = pivotTransform.position + lookDirection * length;
+        //socketTransform.position = pivotTransform.position + lookDirection * length;
 
-        float aimAngle = Mathf.Atan2(lookDirection.y, lookDirection.x) * Mathf.Rad2Deg;
+        //float aimAngle = Mathf.Atan2(lookDirection.y, lookDirection.x) * Mathf.Rad2Deg;
+        //float pivotDeltaAngle = Mathf.DeltaAngle(pivotTransform.eulerAngles.z, aimAngle);
+        //float socketDeltaAngle = Mathf.DeltaAngle(socketTransform.eulerAngles.z, aimAngle);
 
-        // 피벗은 실제 조준 방향 그대로
-        pivotTransform.rotation = Quaternion.Euler(0f, 0f, aimAngle);
-        socketTransform.rotation = Quaternion.Euler(0f, 0f, aimAngle);
-
-        //// 스프라이트가 flip되면 로컬 기준 회전은 반대로 보정
-        //float visualAngle = aimAngle;
-        //if (lookDirection.x < 0f)
-        //{
-        //    visualAngle += 180f;
-        //    visualAngle *= -1f;
-        //}
-
+        //pivotTransform.Rotate(0f, 0f, pivotDeltaAngle);
+        //socketTransform.Rotate(0f, 0f, socketDeltaAngle);
     }
 }

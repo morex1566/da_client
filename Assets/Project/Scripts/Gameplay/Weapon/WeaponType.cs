@@ -27,3 +27,10 @@ public enum WeaponAttachmentType
     Scope,
     Muzzle
 }
+
+public enum MeleeWeaponStateType
+{
+    LeftReady,
+    RightReady,
+    Swing
+}

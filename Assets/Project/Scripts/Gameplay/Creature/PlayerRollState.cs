@@ -30,7 +30,7 @@ public class PlayerRollState : PlayerState
             return; // Animator가 없으면 구르기 진행률을 알 수 없음
         }
 
-        Vector3 frameVelocity = new Vector3(Controller.MoveDirection.x * Controller.Data.MaxSpeed.x, 0f, Controller.MoveDirection.z * Controller.Data.MaxSpeed.z);
+        Vector3 frameVelocity = new Vector3(Controller.CurrMoveDirection.x * Controller.Data.MaxSpeed.x, 0f, Controller.CurrMoveDirection.z * Controller.Data.MaxSpeed.z);
 
         AnimatorStateInfo info = animator.GetCurrentAnimatorStateInfo(0);
         if (info.IsName(UnityConstant.Animator.Parameters.AC_Player.Bool.IsRoll) == false)
@@ -49,11 +49,6 @@ public class PlayerRollState : PlayerState
 
     protected override void SetMoveDirection(InputSnapshot inputSnapshot)
     {
-        if (inputSnapshot.move.IsNearlyZero())
-        {
-            return; // 입력이 없으면 구르기 방향 유지
-        }
-
         if (animator == null)
         {
             return; // Animator가 없으면 구르기 방향 잠금 구간을 판단할 수 없음
@@ -68,7 +63,14 @@ public class PlayerRollState : PlayerState
 
         Vector3 input = inputSnapshot.move.normalized;
         Vector3 nextDirection = new Vector3(input.x, 0f, input.y);
-        Controller.MoveDirection = Vector3.Lerp(Controller.MoveDirection, nextDirection, Time.deltaTime * 10f);
+        Vector3 lerpedDirection = Vector3.Lerp(Controller.CurrMoveDirection, nextDirection, Time.deltaTime * 10f);
+
+        if (inputSnapshot.move.IsNotNearlyZero())
+        {
+            Controller.PrevMoveDirection = Controller.CurrMoveDirection;
+        }
+
+        Controller.CurrMoveDirection = lerpedDirection;
     }
 
     public override PlayerStateType? Evaluate(InputSnapshot inputSnapshot)

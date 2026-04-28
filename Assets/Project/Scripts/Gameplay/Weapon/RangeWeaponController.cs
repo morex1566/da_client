@@ -284,18 +284,18 @@ public partial class RangeWeaponController
             return; // 조준 기준 플레이어가 없으면 무기 방향 계산 불가
         }
 
-        if (playerController.LookDirection.sqrMagnitude < 0.0001f)
+        if (playerController.CurrLookDirection.sqrMagnitude < 0.0001f)
         {
             return; // 유효한 조준 방향이 없으면 마지막 무기 방향 유지
         }
 
-        LookDirection = playerController.LookDirection.normalized;
+        LookDirection = playerController.CurrLookDirection.normalized;
 
-        SpringArm springArm = playerController.SpringArm;
+        CreatureSpringArm springArm = playerController.SpringArm;
         if (springArm != null && springArm.SocketTransform != null)
         {
             transform.SetPositionAndRotation(springArm.SocketTransform.position, springArm.SocketTransform.rotation);
-            return; // SpringArm 소켓이 있으면 무기를 소켓 위치/회전에 고정
+            return; // CreatureSpringArm 소켓이 있으면 무기를 소켓 위치/회전에 고정
         }
 
         transform.right = LookDirection;

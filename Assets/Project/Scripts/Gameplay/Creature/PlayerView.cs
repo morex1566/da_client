@@ -6,9 +6,9 @@ public class PlayerView : MonoBehaviour
 {
     [SerializeField, ReadOnly] private PlayerController playerController = null;
 
-    [SerializeField] private Animator animator = null;
+    [field : SerializeField] public Animator Animator { get; private set; } = null;
 
-    [SerializeField] private SpriteRenderer spriter = null;
+    [field : SerializeField] public SpriteRenderer Spriter { get; private set; } = null;
 
     [SerializeField] private float lookDeadZone = 0.1f;
 
@@ -31,8 +31,8 @@ public class PlayerView : MonoBehaviour
     public void Init()
     {
         playerController = GetComponent<PlayerController>();
-        animator = Utls.FindComponent<Animator>(gameObject);
-        spriter = Utls.FindComponent<SpriteRenderer>(gameObject);
+        Animator = Utls.FindComponent<Animator>(gameObject);
+        Spriter = Utls.FindComponent<SpriteRenderer>(gameObject);
     }
 
     private void Update()
@@ -43,26 +43,26 @@ public class PlayerView : MonoBehaviour
 
     public void UpdateFlip()
     {
-        if (Mathf.Abs(playerController.LookDirection.x) < lookDeadZone)
+        if (Mathf.Abs(playerController.CurrLookDirection.x) < lookDeadZone)
         {
             return;
         }
 
-        spriter.flipX = playerController.LookDirection.x < 0f;
+        Spriter.flipX = playerController.CurrLookDirection.x < 0f;
     }
 
     public void UpdateAnimationParameters()
     {
-        if (playerController == null || animator == null)
+        if (playerController == null || Animator == null)
         {
             return;
         }
 
         PlayerStateType stateType = playerController.CurrentStateType;
 
-        animator.SetBool(UnityConstant.Animator.Parameters.AC_Player.Bool.IsIdle, stateType == PlayerStateType.IDLE);
-        animator.SetBool(UnityConstant.Animator.Parameters.AC_Player.Bool.IsMoving, stateType == PlayerStateType.MOVE);
-        animator.SetBool(UnityConstant.Animator.Parameters.AC_Player.Bool.IsRoll, stateType == PlayerStateType.ROLL);
-        animator.SetBool(UnityConstant.Animator.Parameters.AC_Player.Bool.IsJump, stateType == PlayerStateType.JUMP);
+        Animator.SetBool(UnityConstant.Animator.Parameters.AC_Player.Bool.IsIdle, stateType == PlayerStateType.IDLE);
+        Animator.SetBool(UnityConstant.Animator.Parameters.AC_Player.Bool.IsMoving, stateType == PlayerStateType.MOVE);
+        Animator.SetBool(UnityConstant.Animator.Parameters.AC_Player.Bool.IsRoll, stateType == PlayerStateType.ROLL);
+        Animator.SetBool(UnityConstant.Animator.Parameters.AC_Player.Bool.IsJump, stateType == PlayerStateType.JUMP);
     }
 }
