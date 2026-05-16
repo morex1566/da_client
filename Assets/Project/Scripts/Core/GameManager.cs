@@ -18,7 +18,7 @@ namespace TRPG.Runtime
             Init();
             DOTween.Init();
             InputManager.Init();
-            NetManager.Init();
+            // NetManager.Init();
             ResourceManager.Init();
         }
 

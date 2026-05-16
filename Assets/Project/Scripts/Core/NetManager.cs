@@ -1,5 +1,4 @@
 using UnityEngine;
-using TRPG.Runtime.Network;
 using System.Threading.Tasks;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -18,63 +17,63 @@ namespace TRPG.Runtime
     {
         private static NetManagerSettingsData data;
 
-        private static TCP tcp;
+//        private static TCP tcp;
 
-        public static TCP TCP => tcp;
+//        public static TCP TCP => tcp;
 
-#if UNITY_EDITOR
-        [MenuItem("Network/Init")]
-#endif
-        public static bool Init()
-        {
-            data = Resources.Load<NetManagerSettingsData>("SO_NetManagerSettings");
-            if (data == null)
-            {
-                Debug.LogError("SO_NetManagerSettings resource was not found.");
-                return false;
-            }
+//#if UNITY_EDITOR
+//        [MenuItem("Network/Init")]
+//#endif
+//        public static bool Init()
+//        {
+//            data = Resources.Load<NetManagerSettingsData>("SO_NetManagerSettings");
+//            if (data == null)
+//            {
+//                Debug.LogError("SO_NetManagerSettings resource was not found.");
+//                return false;
+//            }
 
-            GetInstance();
-            {
-                tcp = TCP.GetInstance();
-                {
-                    bool succeeded = tcp.Init(data.TcpHost, data.TcpPort);
-                    if (!succeeded)
-                    {
-                        Debug.LogWarning("TCP init failed.");
-                    }
-                }
-            }
+//            GetInstance();
+//            {
+//                tcp = TCP.GetInstance();
+//                {
+//                    bool succeeded = tcp.Init(data.TcpHost, data.TcpPort);
+//                    if (!succeeded)
+//                    {
+//                        Debug.LogWarning("TCP init failed.");
+//                    }
+//                }
+//            }
 
-            return true;
-        }
+//            return true;
+//        }
 
-#if UNITY_EDITOR
-        [MenuItem("Network/ConnectAsync")]
-#endif
-        public static async Task<bool> ConnectAsync()
-        {
-            bool succeeded = await tcp.ConnectAsync();
-            if (!succeeded)
-            {
-                Debug.LogWarning("TCP connect failed.");
-            }
+//#if UNITY_EDITOR
+//        [MenuItem("Network/ConnectAsync")]
+//#endif
+//        public static async Task<bool> ConnectAsync()
+//        {
+//            bool succeeded = await tcp.ConnectAsync();
+//            if (!succeeded)
+//            {
+//                Debug.LogWarning("TCP connect failed.");
+//            }
 
-            return succeeded;
-        }
+//            return succeeded;
+//        }
 
-#if UNITY_EDITOR
-        [MenuItem("Network/Disconnect")]
-#endif
-        public static bool Disconnect()
-        {
-            bool succeeded = tcp.Disconnect();
-            if (!succeeded)
-            {
-                Debug.LogWarning("TCP disconnect failed.");
-            }
+//#if UNITY_EDITOR
+//        [MenuItem("Network/Disconnect")]
+//#endif
+//        public static bool Disconnect()
+//        {
+//            bool succeeded = tcp.Disconnect();
+//            if (!succeeded)
+//            {
+//                Debug.LogWarning("TCP disconnect failed.");
+//            }
 
-            return succeeded;
-        }
+//            return succeeded;
+//        }
     }
 }
